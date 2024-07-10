@@ -148,6 +148,101 @@
             0% { opacity: 1; }
             100% { opacity: 0; }
         }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            max-width: 600px;
+            max-height: 75%;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+        }
+
+        .modal-body {
+            padding-bottom: 20px;
+            max-width: 100%;
+            max-height: 300px;
+            overflow: auto;
+        }
+
+        .modal-footer {
+            text-align: right;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .result-number, .loading {
+            font-size: 125px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 125px;
+            color: #000;
+            border-radius: 5px;
+        }
+        @keyframes numberChange {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .generating-modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .generating-animation {
+            animation: numberChange 0.1s linear infinite;
+        }
+
     </style>
 </head>
 <body>
@@ -163,11 +258,10 @@
                 <input type="number" id="maxRange" name="maxRange" placeholder="最大值">
             </div>
 
-            <button id="generateButton" onclick="generateNumbers()">生成號碼</button>
+            <button id="generateButton">生成號碼</button>
             <div id="errorMessage" class="error-message"></div>
 
             <div id="results">
-                <h2>結果:</h2>
                 <ul id="resultsList"></ul>
             </div>
         </div>
@@ -179,12 +273,41 @@
         </div>
     </div>
 
+<!-- Modal for Generating Numbers -->
+<div id="generatingModal" class="modal">
+    <div class="modal-content generating-modal-content">
+            <div class="modal-header">
+                <h2>生成中...</h2>
+                
+            </div>
+        <div class="modal-body">
+            <div class="loading"></div>
+            <div id="randomNumber"></div>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Modal for Displaying Results -->
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>結果</h2>
+                <span class="close" onclick="closeResultModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="resultBody"></div>
+                <button onclick="closeResultModal()">確定</button>
+            </div>
+        </div>
+    </div>
+
     <script>
 let history = [];
 let selectedNumbers = new Set();
 let minRange = 0;
 let maxRange = 0;
 let numPeople = 0;
+let interval; // 用于存储动画效果的Interval
 
 function setCookie(name, value, days) {
     const date = new Date();
@@ -253,7 +376,6 @@ function generateNumbers() {
     const resultsList = document.getElementById('resultsList');
     const historyList = document.getElementById('historyList');
     const errorMessage = document.getElementById('errorMessage');
-    const generateButton = document.getElementById('generateButton');
 
     resultsList.innerHTML = '';
 
@@ -278,66 +400,69 @@ function generateNumbers() {
     }
 
     errorMessage.style.display = 'none';
+    openGeneratingModal();
 
-    const selected = new Set();
-    const tempNumbers = [];
-    for (let i = 0; i < numPeople; i++) {
-        const li = document.createElement('li');
-        li.className = 'number-animation';
-        resultsList.appendChild(li);
-        tempNumbers.push(li);
-    }
+    let count = 0;
+    interval = setInterval(() => {
+        const randomNumber = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+        const loadingText = document.querySelector('.loading');
+        loadingText.textContent = randomNumber;
+        count++;
 
-    let animationInterval = setInterval(() => {
-        tempNumbers.forEach(li => {
-            li.textContent = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
-        });
-    }, 100);
+        // 设置一个时间段，这里是2秒钟的时间，如果超出2秒钟，则执行弹出框的关闭
+        if (count >= 20) {  // 2秒钟，因为每100毫秒更新数字一次
+            clearInterval(interval);
+            closeGeneratingModal();
+            const selected = new Set();
 
-    let timeout = setTimeout(() => {
-        clearInterval(animationInterval);
-        showError('在3秒內無法選出號碼，請重試');
-    }, 3000);
+            while (selected.size < numPeople) {
+                const randomNumber = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+                if (!selectedNumbers.has(randomNumber)) {
+                    selected.add(randomNumber);
+                    selectedNumbers.add(randomNumber);
+                }
+            }
 
-    setTimeout(() => {
-        clearInterval(animationInterval);
-
-        while (selected.size < numPeople) {
-            const randomNumber = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
-            if (!selectedNumbers.has(randomNumber)) {
-                selected.add(randomNumber);
-                selectedNumbers.add(randomNumber);
+            if (selected.size === numPeople) {
+                history.push(Array.from(selected));
+                updateHistory(historyList);
+                saveToCookies();
+                openResultModal(selected);
+                if (selectedNumbers.size === (maxRange - minRange + 1)) {
+                    document.getElementById('generateButton').disabled = true;
+                    showError('所有號碼已選完，請清除歷史記錄');
+                }
             }
         }
+    }, 75);  // 每100毫秒更新一次数字
+}
 
-        if (selected.size === numPeople) {
-            clearTimeout(timeout);
+function openGeneratingModal() {
+    const generatingModal = document.getElementById('generatingModal');
+    generatingModal.style.display = 'block';
+}
 
-            let index = 0;
-            selected.forEach(num => {
-                tempNumbers[index].textContent = num;
-                tempNumbers[index].classList.remove('number-animation');
-                index++;
-            });
+function closeGeneratingModal() {
+    const generatingModal = document.getElementById('generatingModal');
+    generatingModal.style.display = 'none';
+}
 
-            history.push(Array.from(selected));
-            updateHistory(historyList);
+function openResultModal(selected) {
+    const resultBody = document.getElementById('resultBody');
+    resultBody.innerHTML = Array.from(selected).map(num => `<div class="result-number">${num}</div>`).join('');
+    const resultModal = document.getElementById('resultModal');
+    resultModal.style.display = 'block';
+}
 
-            saveToCookies();
-
-            if (selectedNumbers.size === (maxRange - minRange + 1)) {
-                generateButton.disabled = true;
-                showError('所有號碼已選完，請清除歷史記錄');
-            }
-        }
-    }, 500);
+function closeResultModal() {
+    const resultModal = document.getElementById('resultModal');
+    resultModal.style.display = 'none';
 }
 
 function showError(message) {
     const errorMessage = document.getElementById('errorMessage');
     errorMessage.textContent = message;
     errorMessage.style.display = 'block';
-    // 不再設置自動隱藏
 }
 
 function updateHistory(historyList) {
@@ -358,18 +483,19 @@ function clearHistory() {
     document.getElementById('historyList').innerHTML = '';
     setCookie("history", "", -1);
     setCookie("selectedNumbers", "", -1);
-    // 不再清除號碼範圍的紀錄
     document.getElementById('generateButton').disabled = false;
 }
 
 window.onload = () => {
     loadFromCookies();
+    document.getElementById('generateButton').addEventListener('click', generateNumbers);
 };
 
     </script>
 </body>
 
 <body>
-    <div class="footer-text">選號器 2024.05 byDinher</div>
+    <div class="footer-text">選號器 2024.07 byDinher</div>
 </body>
+    
 </html>
