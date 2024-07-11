@@ -273,20 +273,18 @@
         </div>
     </div>
 
-<!-- Modal for Generating Numbers -->
-<div id="generatingModal" class="modal">
-    <div class="modal-content generating-modal-content">
+    <!-- Modal for Generating Numbers -->
+    <div id="generatingModal" class="modal">
+        <div class="modal-content generating-modal-content">
             <div class="modal-header">
                 <h2>讓我們掌聲歡迎.....</h2>
-                
             </div>
-        <div class="modal-body">
-            <div class="loading"></div>
-            <div id="randomNumber"></div>
+            <div class="modal-body">
+                <div class="loading"></div>
+                <div id="randomNumber"></div>
+            </div>
         </div>
     </div>
-</div>
-
 
     <!-- Modal for Displaying Results -->
     <div id="resultModal" class="modal">
@@ -296,206 +294,215 @@
                 <span class="close" onclick="closeResultModal()">&times;</span>
             </div>
             <div class="modal-body" id="resultBody"></div>
-                <button onclick="closeResultModal()">確定</button>
-            </div>
+            <button onclick="closeResultModal()">確定</button>
         </div>
     </div>
 
     <script>
-let history = [];
-let selectedNumbers = new Set();
-let minRange = 0;
-let maxRange = 0;
-let numPeople = 0;
-let interval; // 用于存储动画效果的Interval
+        let history = [];
+        let selectedNumbers = new Set();
+        let minRange = 0;
+        let maxRange = 0;
+        let numPeople = 0;
+        let interval; // 用于存储动画效果的Interval
 
-function setCookie(name, value, days) {
-    const date = new Date();
-    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-    const expires = "expires=" + date.toUTCString();
-    document.cookie = name + "=" + value + ";" + expires + ";path=/";
-}
-
-function getCookie(name) {
-    const cname = name + "=";
-    const decodedCookie = decodeURIComponent(document.cookie);
-    const ca = decodedCookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) == ' ') {
-            c = c.substring(1);
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            const expires = "expires=" + date.toUTCString();
+            document.cookie = name + "=" + value + ";" + expires + ";path=/";
         }
-        if (c.indexOf(cname) == 0) {
-            return c.substring(cname.length, c.length);
+
+        function getCookie(name) {
+            const cname = name + "=";
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const ca = decodedCookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(cname) == 0) {
+                    return c.substring(cname.length, c.length);
+                }
+            }
+            return "";
         }
-    }
-    return "";
-}
 
-function loadFromCookies() {
-    const savedHistory = getCookie("history");
-    const savedSelectedNumbers = getCookie("selectedNumbers");
-    minRange = parseInt(getCookie("minRange"));
-    maxRange = parseInt(getCookie("maxRange"));
-    numPeople = parseInt(getCookie("numPeople"));
+        function loadFromCookies() {
+            const savedHistory = getCookie("history");
+            const savedSelectedNumbers = getCookie("selectedNumbers");
+            minRange = parseInt(getCookie("minRange"));
+            maxRange = parseInt(getCookie("maxRange"));
+            numPeople = parseInt(getCookie("numPeople"));
 
-    if (savedHistory) {
-        history = JSON.parse(savedHistory);
-        updateHistory(document.getElementById('historyList'));
-    }
+            if (savedHistory) {
+                history = JSON.parse(savedHistory);
+                updateHistory(document.getElementById('historyList'));
+            }
 
-    if (savedSelectedNumbers) {
-        selectedNumbers = new Set(JSON.parse(savedSelectedNumbers));
-    }
+            if (savedSelectedNumbers) {
+                selectedNumbers = new Set(JSON.parse(savedSelectedNumbers));
+            }
 
-    if (!isNaN(minRange)) {
-        document.getElementById('minRange').value = minRange;
-    }
+            if (!isNaN(minRange)) {
+                document.getElementById('minRange').value = minRange;
+            }
 
-    if (!isNaN(maxRange)) {
-        document.getElementById('maxRange').value = maxRange;
-    }
+            if (!isNaN(maxRange)) {
+                document.getElementById('maxRange').value = maxRange;
+            }
 
-    if (!isNaN(numPeople)) {
-        document.getElementById('numPeople').value = numPeople;
-    }
-}
+            if (!isNaN(numPeople)) {
+                document.getElementById('numPeople').value = numPeople;
+            }
+        }
 
-function saveToCookies() {
-    setCookie("history", JSON.stringify(history), 30);
-    setCookie("selectedNumbers", JSON.stringify(Array.from(selectedNumbers)), 30);
-    setCookie("minRange", minRange, 30);
-    setCookie("maxRange", maxRange, 30);
-    setCookie("numPeople", numPeople, 30);
-}
+        function saveToCookies() {
+            setCookie("history", JSON.stringify(history), 30);
+            setCookie("selectedNumbers", JSON.stringify(Array.from(selectedNumbers)), 30);
+            setCookie("minRange", minRange, 30);
+            setCookie("maxRange", maxRange, 30);
+            setCookie("numPeople", numPeople, 30);
+        }
 
-function generateNumbers() {
-    numPeople = parseInt(document.getElementById('numPeople').value);
-    minRange = parseInt(document.getElementById('minRange').value);
-    maxRange = parseInt(document.getElementById('maxRange').value);
-    const resultsList = document.getElementById('resultsList');
-    const historyList = document.getElementById('historyList');
-    const errorMessage = document.getElementById('errorMessage');
+        function generateNumbers() {
+            numPeople = parseInt(document.getElementById('numPeople').value);
+            minRange = parseInt(document.getElementById('minRange').value);
+            maxRange = parseInt(document.getElementById('maxRange').value);
+            const resultsList = document.getElementById('resultsList');
+            const historyList = document.getElementById('historyList');
+            const errorMessage = document.getElementById('errorMessage');
 
-    resultsList.innerHTML = '';
+            resultsList.innerHTML = '';
 
-    if (isNaN(minRange) || isNaN(maxRange) || minRange >= maxRange) {
-        showError('請輸入有效的號碼範圍');
-        return;
-    }
+            if (isNaN(minRange) || isNaN(maxRange) || minRange >= maxRange) {
+                showError('請輸入有效的號碼範圍');
+                return;
+            }
 
-    if ((maxRange - minRange + 1) < numPeople) {
-        showError('號碼範圍不夠選擇人數，請更改選擇人數或號碼範圍');
-        return;
-    }
+            if ((maxRange - minRange + 1) < numPeople) {
+                showError('號碼範圍不夠選擇人數，請更改選擇人數或號碼範圍');
+                return;
+            }
 
-    if (selectedNumbers.size + numPeople > (maxRange - minRange + 1)) {
-        showError('所有號碼已選完，請清除歷史記錄');
-        return;
-    }
+            if (selectedNumbers.size + numPeople > (maxRange - minRange + 1)) {
+                showError('所有號碼已選完，請清除歷史記錄');
+                return;
+            }
 
-    if (selectedNumbers.size === (maxRange - minRange + 1)) {
-        showError('所有號碼已選完，請清除歷史記錄');
-        return;
-    }
+            if (selectedNumbers.size === (maxRange - minRange + 1)) {
+                showError('所有號碼已選完，請清除歷史記錄');
+                return;
+            }
 
-    errorMessage.style.display = 'none';
-    openGeneratingModal();
+            errorMessage.style.display = 'none';
+            openGeneratingModal();
 
-    let count = 0;
-    interval = setInterval(() => {
-        const randomNumber = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
-        const loadingText = document.querySelector('.loading');
-        loadingText.textContent = randomNumber;
-        count++;
-
-        // 设置一个时间段，这里是2秒钟的时间，如果超出2秒钟，则执行弹出框的关闭
-        if (count >= 20) {  // 2秒钟，因为每100毫秒更新数字一次
-            clearInterval(interval);
-            closeGeneratingModal();
-            const selected = new Set();
-
-            while (selected.size < numPeople) {
+            let count = 0;
+            interval = setInterval(() => {
                 const randomNumber = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
-                if (!selectedNumbers.has(randomNumber)) {
-                    selected.add(randomNumber);
-                    selectedNumbers.add(randomNumber);
-                }
-            }
+                const loadingText = document.querySelector('.loading');
+                loadingText.textContent = randomNumber;
+                count++;
 
-            if (selected.size === numPeople) {
-                history.push(Array.from(selected));
-                updateHistory(historyList);
-                saveToCookies();
-                openResultModal(selected);
-                if (selectedNumbers.size === (maxRange - minRange + 1)) {
-                    document.getElementById('generateButton').disabled = true;
-                    showError('所有號碼已選完，請清除歷史記錄');
+                // 设置一个时间段，这里是2秒钟的时间，如果超出2秒钟，则执行弹出框的关闭
+                if (count >= 20) {  // 2秒钟，因为每100毫秒更新数字一次
+                    clearInterval(interval);
+                    closeGeneratingModal();
+                    const selected = new Set();
+
+                    while (selected.size < numPeople) {
+                        const randomNumber = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+                        if (!selectedNumbers.has(randomNumber)) {
+                            selected.add(randomNumber);
+                            selectedNumbers.add(randomNumber);
+                        }
+                    }
+
+                    if (selected.size === numPeople) {
+                        history.push(Array.from(selected));
+                        updateHistory(historyList);
+                        saveToCookies();
+                        openResultModal(selected);
+                        if (selectedNumbers.size === (maxRange - minRange + 1)) {
+                            document.getElementById('generateButton').disabled = true;
+                            showError('所有號碼已選完，請清除歷史記錄');
+                        }
+                    }
                 }
-            }
+            }, 75);  // 每100毫秒更新一次数字
         }
-    }, 75);  // 每100毫秒更新一次数字
-}
 
-function openGeneratingModal() {
-    const generatingModal = document.getElementById('generatingModal');
-    generatingModal.style.display = 'block';
-}
+        function openGeneratingModal() {
+            const generatingModal = document.getElementById('generatingModal');
+            generatingModal.style.display = 'block';
+        }
 
-function closeGeneratingModal() {
-    const generatingModal = document.getElementById('generatingModal');
-    generatingModal.style.display = 'none';
-}
+        function closeGeneratingModal() {
+            const generatingModal = document.getElementById('generatingModal');
+            generatingModal.style.display = 'none';
+        }
 
-function openResultModal(selected) {
-    const resultBody = document.getElementById('resultBody');
-    resultBody.innerHTML = Array.from(selected).map(num => `<div class="result-number">${num}</div>`).join('');
-    const resultModal = document.getElementById('resultModal');
-    resultModal.style.display = 'block';
-}
+        function openResultModal(selected) {
+            const resultBody = document.getElementById('resultBody');
+            resultBody.innerHTML = Array.from(selected).map(num => `<div class="result-number">${num}</div>`).join('');
+            const resultModal = document.getElementById('resultModal');
+            resultModal.style.display = 'block';
+        }
 
-function closeResultModal() {
-    const resultModal = document.getElementById('resultModal');
-    resultModal.style.display = 'none';
-}
+        function closeResultModal() {
+            const resultModal = document.getElementById('resultModal');
+            resultModal.style.display = 'none';
+        }
 
-function showError(message) {
-    const errorMessage = document.getElementById('errorMessage');
-    errorMessage.textContent = message;
-    errorMessage.style.display = 'block';
-}
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
 
-function updateHistory(historyList) {
-    historyList.innerHTML = '';
-    history.forEach((item, index) => {
-        const li = document.createElement('li');
-        li.className = 'history-item';
-        li.textContent = `${item.join(', ')}`;
-        historyList.appendChild(li);
-    });
+        function clearErrorMessage() {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.style.display = 'none';
+        }
 
-    historyList.scrollTop = historyList.scrollHeight;
-}
+        function updateHistory(historyList) {
+            historyList.innerHTML = '';
+            history.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'history-item';
+                li.textContent = `${item.join(', ')}`;
+                historyList.appendChild(li);
+            });
 
-function clearHistory() {
-    history = [];
-    selectedNumbers.clear();
-    document.getElementById('historyList').innerHTML = '';
-    setCookie("history", "", -1);
-    setCookie("selectedNumbers", "", -1);
-    document.getElementById('generateButton').disabled = false;
-}
+            historyList.scrollTop = historyList.scrollHeight;
+        }
 
-window.onload = () => {
-    loadFromCookies();
-    document.getElementById('generateButton').addEventListener('click', generateNumbers);
-};
+        function clearHistory() {
+            history = [];
+            selectedNumbers.clear();
+            document.getElementById('historyList').innerHTML = '';
+            setCookie("history", "", -1);
+            setCookie("selectedNumbers", "", -1);
+            document.getElementById('generateButton').disabled = false;
+            clearErrorMessage(); // Clear error message when history is cleared
+        }
 
+        window.onload = () => {
+            loadFromCookies();
+            document.getElementById('generateButton').addEventListener('click', generateNumbers);
+            document.getElementById('numPeople').addEventListener('input', clearErrorMessage);
+            document.getElementById('minRange').addEventListener('input', () => {
+                clearHistory(); // 清除歷史記錄
+                clearErrorMessage(); // 清除錯誤訊息
+            });
+            document.getElementById('maxRange').addEventListener('input', () => {
+                clearHistory(); // 清除歷史記錄
+                clearErrorMessage(); // 清除錯誤訊息
+            });
+        };
     </script>
-</body>
-
-<body>
     <div class="footer-text">選號器 2024.07 byDinher</div>
 </body>
-    
 </html>
