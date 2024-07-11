@@ -260,6 +260,10 @@
 
             <button id="generateButton">生成號碼</button>
             <div id="errorMessage" class="error-message"></div>
+            <label for="allowDuplicates">
+                <input type="checkbox" id="allowDuplicates" name="allowDuplicates">
+                重複選號(不會記錄)
+            </label>
 
             <div id="results">
                 <ul id="resultsList"></ul>
@@ -370,6 +374,7 @@
             numPeople = parseInt(document.getElementById('numPeople').value);
             minRange = parseInt(document.getElementById('minRange').value);
             maxRange = parseInt(document.getElementById('maxRange').value);
+            const allowDuplicates = document.getElementById('allowDuplicates').checked;
             const resultsList = document.getElementById('resultsList');
             const historyList = document.getElementById('historyList');
             const errorMessage = document.getElementById('errorMessage');
@@ -386,12 +391,7 @@
                 return;
             }
 
-            if (selectedNumbers.size + numPeople > (maxRange - minRange + 1)) {
-                showError('所有號碼已選完，請清除歷史記錄');
-                return;
-            }
-
-            if (selectedNumbers.size === (maxRange - minRange + 1)) {
+            if (!allowDuplicates && (selectedNumbers.size + numPeople > (maxRange - minRange + 1))) {
                 showError('所有號碼已選完，請清除歷史記錄');
                 return;
             }
@@ -406,32 +406,35 @@
                 loadingText.textContent = randomNumber;
                 count++;
 
-                // 设置一个时间段，这里是2秒钟的时间，如果超出2秒钟，则执行弹出框的关闭
-                if (count >= 20) {  // 2秒钟，因为每100毫秒更新数字一次
+                if (count >= 20) {
                     clearInterval(interval);
                     closeGeneratingModal();
                     const selected = new Set();
 
                     while (selected.size < numPeople) {
                         const randomNumber = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
-                        if (!selectedNumbers.has(randomNumber)) {
+                        if (allowDuplicates || !selectedNumbers.has(randomNumber)) {
                             selected.add(randomNumber);
-                            selectedNumbers.add(randomNumber);
+                            if (!allowDuplicates) {
+                                selectedNumbers.add(randomNumber);
+                            }
                         }
                     }
 
                     if (selected.size === numPeople) {
-                        history.push(Array.from(selected));
+                        if (!allowDuplicates) {
+                            history.push(Array.from(selected));
+                            saveToCookies();
+                        }
                         updateHistory(historyList);
-                        saveToCookies();
                         openResultModal(selected);
-                        if (selectedNumbers.size === (maxRange - minRange + 1)) {
+                        if (!allowDuplicates && selectedNumbers.size === (maxRange - minRange + 1)) {
                             document.getElementById('generateButton').disabled = true;
                             showError('所有號碼已選完，請清除歷史記錄');
                         }
                     }
                 }
-            }, 75);  // 每100毫秒更新一次数字
+            }, 75);
         }
 
         function openGeneratingModal() {
