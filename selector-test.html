@@ -263,10 +263,11 @@
 
             <button id="generateButton">生成號碼</button>
             <div id="errorMessage" class="error-message"></div>
-            <label for="allowDuplicates">
-                <input type="checkbox" id="allowDuplicates" name="allowDuplicates">
-                重複選號(不會記錄)
-            </label>
+<label for="allowDuplicates">
+    <input type="checkbox" id="allowDuplicates" name="allowDuplicates">
+    重複選號(不會記錄)
+</label>
+
 
             <div id="results">
                 <ul id="resultsList"></ul>
@@ -404,63 +405,78 @@
             setCookie("numPeople", numPeople, 30);
         }
 
-        function generateNumbers() {
-            numPeople = parseInt(document.getElementById('numPeople').value);
-            minRange = parseInt(document.getElementById('minRange').value);
-            maxRange = parseInt(document.getElementById('maxRange').value);
-            const allowDuplicates = document.getElementById('allowDuplicates').checked;
-            const resultsList = document.getElementById('resultsList');
-            const historyList = document.getElementById('historyList');
-            const errorMessage = document.getElementById('errorMessage');
+function generateNumbers() {
+    numPeople = parseInt(document.getElementById('numPeople').value);
+    minRange = parseInt(document.getElementById('minRange').value);
+    maxRange = parseInt(document.getElementById('maxRange').value);
+    const allowDuplicates = document.getElementById('allowDuplicates').checked;
+    const resultsList = document.getElementById('resultsList');
+    const historyList = document.getElementById('historyList');
+    const errorMessage = document.getElementById('errorMessage');
 
-            resultsList.innerHTML = '';
+    resultsList.innerHTML = '';
 
-            if (minRange >= maxRange) {
-                showError('最小範圍必須小於最大範圍');
-                return;
-            }
+    // 检查输入的有效性
+    if (isNaN(minRange) || isNaN(maxRange) || minRange >= maxRange) {
+        showError('請輸入有效的號碼範圍');
+        return;
+    }
 
-            if (isAllHistoryNumbersSelected(numPeople, minRange, maxRange, allowDuplicates)) {
-                showError('選完了');
-                return;
-            }
+    if ((maxRange - minRange + 1) < numPeople) {
+        showError('號碼範圍不夠選擇人數，請更改選擇人數或號碼範圍');
+        return;
+    }
 
-            errorMessage.style.display = 'none';
-            openGeneratingModal();
+    if (!allowDuplicates && (selectedNumbers.size + numPeople > (maxRange - minRange + 1))) {
+        showError('所有號碼已選完，請清除歷史記錄');
+        return;
+    }
 
-            let count = 0;
-            interval = setInterval(() => {
+    if (!allowDuplicates && isAllHistoryNumbersSelected(numPeople, minRange, maxRange, allowDuplicates)) {
+        showError('所有號碼已選完，請清除歷史記錄');
+        return;
+    }
+
+    errorMessage.style.display = 'none';
+    openGeneratingModal();
+
+    let count = 0;
+    const resultArray = [];
+    const allNumbers = new Set();
+
+    interval = setInterval(() => {
+        const randomNumber = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+        const loadingText = document.querySelector('.loading');
+        loadingText.textContent = randomNumber;
+        count++;
+
+        if (count >= 20) {
+            clearInterval(interval);
+            closeGeneratingModal();
+
+            while (resultArray.length < numPeople) {
                 const randomNumber = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
-                const loadingText = document.querySelector('.loading');
-                loadingText.textContent = randomNumber;
-                count++;
+                if (allowDuplicates || !selectedNumbers.has(randomNumber)) {
+                    resultArray.push(randomNumber);
+                    selectedNumbers.add(randomNumber);
+                }
+            }
 
-                if (count >= 20) {
-                    clearInterval(interval);
-                    closeGeneratingModal();
-                    const selected = new Set();
-
-                    while (selected.size < numPeople) {
-                        const randomNumber = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
-                        if (allowDuplicates || !selectedNumbers.has(randomNumber)) {
-                            selected.add(randomNumber);
-                            if (!allowDuplicates) {
-                                selectedNumbers.add(randomNumber);
-                            }
-                        }
-                    }
-
-                    const resultArray = Array.from(selected);
-                    history.push(resultArray);
-                    if (history.length > MAX_HISTORY_SIZE) {
-                        history.shift(); // Remove oldest record
-                    }
-                    updateHistory(historyList);
-                    displayResults(resultArray);
+            if (resultArray.length === numPeople) {
+                if (!allowDuplicates) {
+                    history.push(resultArray.slice()); // 记录号码历史
                     saveToCookies();
                 }
-            }, 100);
+                updateHistory(historyList);
+                displayResults(resultArray);
+                if (!allowDuplicates && selectedNumbers.size === (maxRange - minRange + 1)) {
+                    document.getElementById('generateButton').disabled = true;
+                    showError('所有號碼已選完，請清除歷史記錄');
+                }
+            }
         }
+    }, 75);
+}
 
         function isAllHistoryNumbersSelected(numPeople, minRange, maxRange, allowDuplicates) {
             const allHistoryNumbers = getAllHistoryNumbers();
