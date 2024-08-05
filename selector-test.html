@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="https://dinhertw.github.io/selector/icon.png" />
+    <title>選號器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+            width: 700px;
+            height: 600px;
+            padding: 20px;
+        }
+
+        .main-content, .history-content {
+            padding: 20px;
+        }
+
+        .main-content {
+            border-right: 1px solid #ddd;
+        }
+
+        .history-content {
+            max-width: 300px;
+            width: 100%;
+        }
+
+        h1, h2 {
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 20px;
+            margin: 10px 0;
+        }
+
+        select {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+            cursor: pointer;
+        }
+
+        select:focus {
+            border-color: #007BFF;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #results {
+            margin-top: 20px;
+        }
+
+        #resultsList, #historyList {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .history-item {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        #resultsList li {
+            font-size: 150px;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        #historyList {
+            height: 400px;
+            width: 140px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f2f2f2;
+        }
+
+        .number-animation {
+            font-size: 20px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: numberChange 0.1s linear infinite;
+        }
+
+        .error-message {
+            color: #ff0000;
+            background-color: #f2dede;
+            border: 1px solid #ebccd1;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .footer-text {
+            font-size: 7px;
+            position: fixed;
+            right: -7px;
+            bottom: -7px;
+            color: #fff;
+            padding: 10px;
+            opacity: 0.7;
+        }
+
+        @keyframes numberChange {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f075;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            max-width: 600px;
+            max-height: 75%;
+            border-radius: 5px;
+            position: relative;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+        }
+
+        .modal-body {
+            padding-bottom: 20px;
+            max-width: 100%;
+            max-height: 300px;
+            overflow: auto;
+        }
+
+        .modal-footer {
+            text-align: right;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .result-number, .loading {
+            font-size: 125px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 125px;
+            color: #000;
+            border-radius: 5px;
+        }
+
+        .generating-modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .generating-animation {
+            animation: numberChange 0.1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">
+            <h1>選號器</h1>
+            <label for="numPeople">選擇人數:</label>
+            <select id="numPeople" name="numPeople">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <!-- Add more options as needed -->
+            </select>
+
+            <label for="numRange">號碼範圍:</label>
+            <div class="input-container">
+                <select id="minRange" name="minRange">
+                    <option value="1">1</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                    <!-- Add more options as needed -->
+                </select>
+                <select id="maxRange" name="maxRange">
+                    <option value="50">50</option>
+                    <option value="60">60</option>
+                    <option value="70">70</option>
+                    <option value="80">80</option>
+                    <!-- Add more options as needed -->
+                </select>
+            </div>
+
+            <button id="generateButton">生成號碼</button>
+            <div id="errorMessage" class="error-message"></div>
+            <label for="allowDuplicates">
+                <input type="checkbox" id="allowDuplicates" name="allowDuplicates">
+                重複選號(不會記錄)
+            </label>
+
+            <div id="results">
+                <ul id="resultsList"></ul>
+            </div>
+        </div>
+
+        <div class="history-content" id="history">
+            <h2>歷史記錄:</h2>
+            <ul id="historyList"></ul>
+            <button onclick="clearHistory()">清除歷史記錄</button>
+        </div>
+    </div>
+
+    <!-- Modal for Generating Numbers -->
+    <div id="generatingModal" class="modal">
+        <div class="modal-content generating-modal-content">
+            <div class="modal-header">
+                <h2>讓我們掌聲歡迎.....</h2>
+            </div>
+            <div class="modal-body">
+                <div class="loading"></div>
+                <div id="randomNumber"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Displaying Results -->
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>恭喜恭喜</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="result-number"></div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeModal()">確定</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-text">貓車電競 提供</div>
+
+    <script>
+        const numPeopleSelect = document.getElementById('numPeople');
+        const minRangeSelect = document.getElementById('minRange');
+        const maxRangeSelect = document.getElementById('maxRange');
+        const generateButton = document.getElementById('generateButton');
+        const resultsList = document.getElementById('resultsList');
+        const historyList = document.getElementById('historyList');
+        const errorMessage = document.getElementById('errorMessage');
+        const generatingModal = document.getElementById('generatingModal');
+        const resultModal = document.getElementById('resultModal');
+        const randomNumberDiv = document.getElementById('randomNumber');
+        const resultNumberDiv = document.querySelector('.result-number');
+        const allowDuplicatesCheckbox = document.getElementById('allowDuplicates');
+
+        generateButton.addEventListener('click', generateNumbers);
+
+        function generateNumbers() {
+            const numPeople = parseInt(numPeopleSelect.value);
+            const minRange = parseInt(minRangeSelect.value);
+            const maxRange = parseInt(maxRangeSelect.value);
+            const allowDuplicates = allowDuplicatesCheckbox.checked;
+
+            errorMessage.style.display = 'none';
+            if (minRange >= maxRange) {
+                showError('最小範圍必須小於最大範圍');
+                return;
+            }
+
+            if (!allowDuplicates && maxRange - minRange + 1 < numPeople) {
+                showError('號碼範圍不足以產生不同的號碼');
+                return;
+            }
+
+            showGeneratingModal();
+
+            setTimeout(() => {
+                let numbers = [];
+                while (numbers.length < numPeople) {
+                    const number = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+                    if (allowDuplicates || !numbers.includes(number)) {
+                        numbers.push(number);
+                    }
+                }
+
+                hideGeneratingModal();
+                showResultModal(numbers);
+                saveToHistory(numbers);
+            }, 2000);
+        }
+
+        function showError(message) {
+            errorMessage.innerText = message;
+            errorMessage.style.display = 'block';
+        }
+
+        function showGeneratingModal() {
+            generatingModal.style.display = 'block';
+        }
+
+        function hideGeneratingModal() {
+            generatingModal.style.display = 'none';
+        }
+
+        function showResultModal(numbers) {
+            resultNumberDiv.innerText = numbers.join(', ');
+            resultModal.style.display = 'block';
+        }
+
+        function closeModal() {
+            resultModal.style.display = 'none';
+        }
+
+        function saveToHistory(numbers) {
+            const listItem = document.createElement('li');
+            listItem.classList.add('history-item');
+            listItem.innerText = numbers.join(', ');
+            historyList.appendChild(listItem);
+        }
+
+        function clearHistory() {
+            historyList.innerHTML = '';
+        }
+    </script>
+</body>
+</html>
