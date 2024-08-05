@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh_tw">
 <head>
@@ -6,6 +7,16 @@
     <link rel="shortcut icon" href="https://dinhertw.github.io/selector/icon.png" />
     <title>選號器</title>
     <style>
+        body {
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Edge */
+            overflow-x:hidden;
+            overflow-y:hidden;
+        }
+
+
         body {
             font-family: Arial, sans-serif;
             display: flex;
