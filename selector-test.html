@@ -535,12 +535,42 @@ function generateNumbers() {
             });
         }
 
-        function clearHistory() {
-            history = [];
-            selectedNumbers.clear();
-            updateHistory(document.getElementById('historyList'));
-            saveToCookies();
-        }
+        window.onload = () => {
+    loadFromCookies();
+
+    document.getElementById('generateButton').addEventListener('click', generateNumbers);
+    document.getElementById('numPeople').addEventListener('input', clearErrorMessage);
+
+    // 清除历史记录
+    const minRangeInput = document.getElementById('minRange');
+    const maxRangeInput = document.getElementById('maxRange');
+
+    minRangeInput.addEventListener('input', () => {
+        clearHistory(); // 清除历史记录
+        clearErrorMessage(); // 清除错误信息
+    });
+
+    maxRangeInput.addEventListener('input', () => {
+        clearHistory(); // 清除历史记录
+        clearErrorMessage(); // 清除错误信息
+    });
+};
+
+    function clearHistory() {
+        history = [];
+       selectedNumbers.clear();
+        document.getElementById('historyList').innerHTML = '';
+        setCookie("history", "", -1);
+        setCookie("selectedNumbers", "", -1);
+        document.getElementById('generateButton').disabled = false;
+        clearErrorMessage(); // 清除错误信息
+    }
+
+    function clearErrorMessage() {
+        const errorMessage = document.getElementById('errorMessage');
+        errorMessage.style.display = 'none';
+    }
+
 
         // Event listeners
         document.getElementById('generateButton').addEventListener('click', generateNumbers);
