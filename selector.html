@@ -508,6 +508,9 @@
         // 将结果容器添加到结果区域
         resultBody.appendChild(resultContainer);
 
+        // 确保内容滚动到顶部
+        resultBody.scrollTop = 0;
+
         openResultModal();
     }
 
@@ -536,6 +539,11 @@
             const listItem = document.createElement('li');
             listItem.textContent = item.join(', ');
             historyList.appendChild(listItem);
+        });
+
+        // 使用 requestAnimationFrame 确保在渲染后滚动到顶部
+        requestAnimationFrame(() => {
+        historyList.scrollTop = historyList.scrollHeight;
         });
     }
 
