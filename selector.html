@@ -424,7 +424,7 @@
         }
 
         if (!allowDuplicates && (selectedNumbers.size + numPeople > (maxRange - minRange + 1))) {
-            showError('所有號碼已選完，請清除歷史記錄');
+            showError('所有號碼已選完，請清除歷史記錄1');
             return;
         }
 
@@ -557,9 +557,7 @@
 
     // 事件监听器
     document.getElementById('allowDuplicates').addEventListener('change', function() {
-        if (this.checked) {
             clearHistory();
-        }
     });
 
     document.getElementById('minRange').addEventListener('change', function() {
