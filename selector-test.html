@@ -222,7 +222,7 @@
             cursor: pointer;
         }
 
-        .result-number, .loading {
+        .result-item, .loading {
             font-size: 125px;
             display: flex;
             align-items: center;
@@ -245,6 +245,7 @@
         .generating-animation {
             animation: numberChange 0.1s linear infinite;
         }
+
     </style>
 </head>
 <body>
@@ -293,164 +294,60 @@
     </div>
 
     <!-- Modal for Displaying Results -->
-    <div id="resultModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>結果</h2>
-                <span class="close" onclick="closeModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div class="result-number"></div>
-            </div>
-            <div class="modal-footer">
-                <button onclick="closeModal()">確定</button>
-            </div>
+<div id="resultModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>恭喜恭喜</h2>
+            <span class="close" onclick="closeResultModal()">&times;</span>
         </div>
+        <div class="modal-body" id="resultBody"></div>
+        <button onclick="closeResultModal()">確定</button>
     </div>
+</div>
 
-    <div class="footer-text">貓車電競 提供</div>
+    <div class="footer-text">選號器 2024.08 byDinher</div>
+
 
     <script>
-        const numPeopleSelect = document.getElementById('numPeople');
-        const minRangeSelect = document.getElementById('minRange');
-        const maxRangeSelect = document.getElementById('maxRange');
-        const generateButton = document.getElementById('generateButton');
-        const resultsList = document.getElementById('resultsList');
-        const historyList = document.getElementById('historyList');
-        const errorMessage = document.getElementById('errorMessage');
-        const generatingModal = document.getElementById('generatingModal');
-        const resultModal = document.getElementById('resultModal');
-        const randomNumberDiv = document.getElementById('randomNumber');
-        const resultNumberDiv = document.querySelector('.result-number');
-        const allowDuplicatesCheckbox = document.getElementById('allowDuplicates');
+        const MAX_HISTORY_SIZE = 10; // Max history size
 
-        generateButton.addEventListener('click', generateNumbers);
+        let history = [];
+        let selectedNumbers = new Set();
+        let minRange = 0;
+        let maxRange = 0;
+        let numPeople = 0;
+        let interval; // Used for animation effect
 
-        document.addEventListener('DOMContentLoaded', () => {
-            populateRangeOptions();
-            populateNumPeopleOptions();
-            loadHistory();
-            loadRangeFromCookies();
-        });
+        // Initialize select options
+        function initializeSelectOptions() {
+            const numPeopleSelect = document.getElementById('numPeople');
+            const minRangeSelect = document.getElementById('minRange');
+            const maxRangeSelect = document.getElementById('maxRange');
 
-        function populateRangeOptions() {
-            for (let i = 1; i <= 999; i++) {
-                const minOption = document.createElement('option');
-                minOption.value = i;
-                minOption.text = i;
-                minRangeSelect.appendChild(minOption);
-
-                const maxOption = document.createElement('option');
-                maxOption.value = i;
-                maxOption.text = i;
-                maxRangeSelect.appendChild(maxOption);
-            }
-        }
-
-        function populateNumPeopleOptions() {
-            for (let i = 1; i <= 999; i++) {  // You can adjust the maximum number of people as needed
+            for (let i = 1; i <= 50; i++) {
                 const option = document.createElement('option');
                 option.value = i;
-                option.text = i;
+                option.textContent = i;
+                minRangeSelect.appendChild(option);
+                maxRangeSelect.appendChild(option.cloneNode(true));
+            }
+
+            for (let i = 1; i <= 10; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i;
                 numPeopleSelect.appendChild(option);
             }
-        }
 
-        function generateNumbers() {
-            const numPeople = parseInt(numPeopleSelect.value);
-            const minRange = parseInt(minRangeSelect.value);
-            const maxRange = parseInt(maxRangeSelect.value);
-            const allowDuplicates = allowDuplicatesCheckbox.checked;
-
-            errorMessage.style.display = 'none';
-            if (minRange >= maxRange) {
-                showError('最小範圍必須小於最大範圍');
-                return;
-            }
-
-            if (!allowDuplicates && maxRange - minRange + 1 < numPeople) {
-                showError('號碼範圍不足以產生不同的號碼');
-                return;
-            }
-
-            showGeneratingModal();
-
-            setTimeout(() => {
-                let numbers = [];
-                while (numbers.length < numPeople) {
-                    const number = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
-                    if (allowDuplicates || (!numbers.includes(number) && !isNumberInHistory(number))) {
-                        numbers.push(number);
-                    }
-                }
-
-                hideGeneratingModal();
-                showResultModal(numbers);
-                saveToHistory(numbers);
-                saveRangeToCookies(minRange, maxRange);
-            }, 2000);
-        }
-
-        function showError(message) {
-            errorMessage.innerText = message;
-            errorMessage.style.display = 'block';
-        }
-
-        function showGeneratingModal() {
-            generatingModal.style.display = 'block';
-        }
-
-        function hideGeneratingModal() {
-            generatingModal.style.display = 'none';
-        }
-
-        function showResultModal(numbers) {
-            resultNumberDiv.innerText = numbers.join(', ');
-            resultModal.style.display = 'block';
-        }
-
-        function closeModal() {
-            resultModal.style.display = 'none';
-        }
-
-        function saveToHistory(numbers) {
-            const listItem = document.createElement('li');
-            listItem.classList.add('history-item');
-            listItem.innerText = numbers.join(', ');
-            historyList.appendChild(listItem);
-            saveHistoryToCookies();
-        }
-
-        function loadHistory() {
-            const history = getCookie('history');
-            if (history) {
-                const historyItems = JSON.parse(history);
-                historyItems.forEach(numbers => {
-                    const listItem = document.createElement('li');
-                    listItem.classList.add('history-item');
-                    listItem.innerText = numbers.join(', ');
-                    historyList.appendChild(listItem);
-                });
-            }
-        }
-
-        function saveHistoryToCookies() {
-            const historyItems = [];
-            document.querySelectorAll('.history-item').forEach(item => {
-                historyItems.push(item.innerText.split(', ').map(Number));
-            });
-            setCookie('history', JSON.stringify(historyItems), 365);
-        }
-
-        function clearHistory() {
-            historyList.innerHTML = '';
-            setCookie('history', '', -1);
+            numPeopleSelect.value = 1;
+            minRangeSelect.value = 1;
+            maxRangeSelect.value = 50;
         }
 
         function setCookie(name, value, days) {
-            const d = new Date();
-            d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-            const expires = "expires=" + d.toUTCString();
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            const expires = "expires=" + date.toUTCString();
             document.cookie = name + "=" + value + ";" + expires + ";path=/";
         }
 
@@ -470,30 +367,176 @@
             return "";
         }
 
-        function isNumberInHistory(number) {
-            const historyItems = getCookie('history');
-            if (historyItems) {
-                const history = JSON.parse(historyItems);
-                return history.some(numbers => numbers.includes(number));
+        function loadFromCookies() {
+            const savedHistory = getCookie("history");
+            const savedSelectedNumbers = getCookie("selectedNumbers");
+            minRange = parseInt(getCookie("minRange"));
+            maxRange = parseInt(getCookie("maxRange"));
+            numPeople = parseInt(getCookie("numPeople"));
+
+            if (savedHistory) {
+                history = JSON.parse(savedHistory);
+                updateHistory(document.getElementById('historyList'));
             }
-            return false;
+
+            if (savedSelectedNumbers) {
+                selectedNumbers = new Set(JSON.parse(savedSelectedNumbers));
+            }
+
+            if (!isNaN(minRange)) {
+                document.getElementById('minRange').value = minRange;
+            }
+
+            if (!isNaN(maxRange)) {
+                document.getElementById('maxRange').value = maxRange;
+            }
+
+            if (!isNaN(numPeople)) {
+                document.getElementById('numPeople').value = numPeople;
+            }
         }
 
-        function saveRangeToCookies(minRange, maxRange) {
-            setCookie('minRange', minRange, 365);
-            setCookie('maxRange', maxRange, 365);
+        function saveToCookies() {
+            setCookie("history", JSON.stringify(history), 30);
+            setCookie("selectedNumbers", JSON.stringify(Array.from(selectedNumbers)), 30);
+            setCookie("minRange", minRange, 30);
+            setCookie("maxRange", maxRange, 30);
+            setCookie("numPeople", numPeople, 30);
         }
 
-        function loadRangeFromCookies() {
-            const minRange = getCookie('minRange');
-            const maxRange = getCookie('maxRange');
-            if (minRange) {
-                minRangeSelect.value = minRange;
+        function generateNumbers() {
+            numPeople = parseInt(document.getElementById('numPeople').value);
+            minRange = parseInt(document.getElementById('minRange').value);
+            maxRange = parseInt(document.getElementById('maxRange').value);
+            const allowDuplicates = document.getElementById('allowDuplicates').checked;
+            const resultsList = document.getElementById('resultsList');
+            const historyList = document.getElementById('historyList');
+            const errorMessage = document.getElementById('errorMessage');
+
+            resultsList.innerHTML = '';
+
+            if (minRange >= maxRange) {
+                showError('最小範圍必須小於最大範圍');
+                return;
             }
-            if (maxRange) {
-                maxRangeSelect.value = maxRange;
+
+            if (isAllHistoryNumbersSelected(numPeople, minRange, maxRange, allowDuplicates)) {
+                showError('選完了');
+                return;
+            }
+
+            errorMessage.style.display = 'none';
+            openGeneratingModal();
+
+            let count = 0;
+            interval = setInterval(() => {
+                const randomNumber = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+                const loadingText = document.querySelector('.loading');
+                loadingText.textContent = randomNumber;
+                count++;
+
+                if (count >= 20) {
+                    clearInterval(interval);
+                    closeGeneratingModal();
+                    const selected = new Set();
+
+                    while (selected.size < numPeople) {
+                        const randomNumber = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+                        if (allowDuplicates || !selectedNumbers.has(randomNumber)) {
+                            selected.add(randomNumber);
+                            if (!allowDuplicates) {
+                                selectedNumbers.add(randomNumber);
+                            }
+                        }
+                    }
+
+                    const resultArray = Array.from(selected);
+                    history.push(resultArray);
+                    if (history.length > MAX_HISTORY_SIZE) {
+                        history.shift(); // Remove oldest record
+                    }
+                    updateHistory(historyList);
+                    displayResults(resultArray);
+                    saveToCookies();
+                }
+            }, 100);
+        }
+
+        function isAllHistoryNumbersSelected(numPeople, minRange, maxRange, allowDuplicates) {
+            const allHistoryNumbers = getAllHistoryNumbers();
+            const totalNumbers = maxRange - minRange + 1;
+
+            if (allowDuplicates) {
+                return allHistoryNumbers.length >= totalNumbers;
+            } else {
+                return allHistoryNumbers.length >= totalNumbers - numPeople;
             }
         }
+
+        function getAllHistoryNumbers() {
+            const allNumbers = new Set();
+            history.forEach(numbers => {
+                numbers.forEach(num => allNumbers.add(num));
+            });
+            return Array.from(allNumbers);
+        }
+
+        function openGeneratingModal() {
+            const generatingModal = document.getElementById('generatingModal');
+            generatingModal.style.display = 'block';
+        }
+
+        function closeGeneratingModal() {
+            const generatingModal = document.getElementById('generatingModal');
+            generatingModal.style.display = 'none';
+        }
+
+        function displayResults(results) {
+            const resultBody = document.getElementById('resultBody');
+            resultBody.innerHTML = results.map(num => `<div class="result-item">${num}</div>`).join('');
+            const resultModal = document.getElementById('resultModal');
+            resultModal.style.display = 'block';
+        }
+
+        function closeResultModal() {
+            const resultModal = document.getElementById('resultModal');
+            resultModal.style.display = 'none';
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.innerText = message;
+            errorMessage.style.display = 'block';
+        }
+
+        function updateHistory(historyList) {
+            historyList.innerHTML = '';
+            history.forEach(numbers => {
+                const listItem = document.createElement('li');
+                listItem.classList.add('history-item');
+                listItem.innerText = numbers.join(', ');
+                historyList.appendChild(listItem);
+            });
+        }
+
+        function clearHistory() {
+            history = [];
+            selectedNumbers.clear();
+            updateHistory(document.getElementById('historyList'));
+            saveToCookies();
+        }
+
+        // Event listeners
+        document.getElementById('generateButton').addEventListener('click', generateNumbers);
+        document.getElementById('minRange').addEventListener('change', () => minRange = parseInt(document.getElementById('minRange').value));
+        document.getElementById('maxRange').addEventListener('change', () => maxRange = parseInt(document.getElementById('maxRange').value));
+        document.getElementById('numPeople').addEventListener('change', () => numPeople = parseInt(document.getElementById('numPeople').value));
+        window.addEventListener('load', loadFromCookies);
+        window.addEventListener('beforeunload', saveToCookies);
+
+        // Initialize selects
+        initializeSelectOptions();
     </script>
+
 </body>
 </html>
