@@ -305,7 +305,7 @@
                 <h2>讓我們掌聲歡迎.....</h2>
             </div>
             <div class="modal-body">
-                <div class="loading"></div>
+                <div class="loading generating-animation">...</div>
                 <div id="randomNumber"></div>
             </div>
         </div>
@@ -315,7 +315,7 @@
     <div id="resultModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>恭喜恭喜</h2>
+                <h2>結果</h2>
                 <span class="close" onclick="closeModal()">&times;</span>
             </div>
             <div class="modal-body">
@@ -344,6 +344,8 @@
         const allowDuplicatesCheckbox = document.getElementById('allowDuplicates');
 
         generateButton.addEventListener('click', generateNumbers);
+
+        document.addEventListener('DOMContentLoaded', loadHistory);
 
         function generateNumbers() {
             const numPeople = parseInt(numPeopleSelect.value);
@@ -406,10 +408,56 @@
             listItem.classList.add('history-item');
             listItem.innerText = numbers.join(', ');
             historyList.appendChild(listItem);
+            saveHistoryToCookies();
+        }
+
+        function loadHistory() {
+            const history = getCookie('history');
+            if (history) {
+                const historyItems = JSON.parse(history);
+                historyItems.forEach(numbers => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('history-item');
+                    listItem.innerText = numbers.join(', ');
+                    historyList.appendChild(listItem);
+                });
+            }
+        }
+
+        function saveHistoryToCookies() {
+            const historyItems = [];
+            document.querySelectorAll('.history-item').forEach(item => {
+                historyItems.push(item.innerText.split(', ').map(Number));
+            });
+            setCookie('history', JSON.stringify(historyItems), 365);
         }
 
         function clearHistory() {
             historyList.innerHTML = '';
+            setCookie('history', '', -1);
+        }
+
+        function setCookie(name, value, days) {
+            const d = new Date();
+            d.setTime(d.getTime() + (days*24*60*60*1000));
+            const expires = "expires=" + d.toUTCString();
+            document.cookie = name + "=" + value + ";" + expires + ";path=/";
+        }
+
+        function getCookie(name) {
+            const cname = name + "=";
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const ca = decodedCookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(cname) == 0) {
+                    return c.substring(cname.length, c.length);
+                }
+            }
+            return "";
         }
     </script>
 </body>
