@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh_tw">
 <head>
@@ -62,12 +63,6 @@
         }
 
         .input-container {
-            display: flex;
-            gap: 20px;
-            margin: 10px 0;
-        }
-
-        select {
             flex: 1;
             padding: 15px;
             font-size: 20px;
@@ -75,6 +70,7 @@
             border-radius: 5px;
             background-color: #fff;
             cursor: pointer;
+            display: flex;
         }
 
         select:focus {
@@ -266,15 +262,15 @@
             <h1>選號器</h1>
             
             <label for="numPeople">選擇人數:</label>
-            <input list="numPeopleOptions" id="numPeople" name="numPeople">
+            <input class="input-container" list="numPeopleOptions" id="numPeople" name="numPeople">
             <datalist id="numPeopleOptions"></datalist>
 
             <label for="numRange">號碼範圍:</label>
-            <div class="input-container">
-                <input list="minRangeOptions" id="minRange" name="minRange">
+            <div>
+                <input class="input-container" list="minRangeOptions" id="minRange" name="minRange">
                 <datalist id="minRangeOptions"></datalist>
 
-                <input list="maxRangeOptions" id="maxRange" name="maxRange">
+                <input class="input-container" list="maxRangeOptions" id="maxRange" name="maxRange">
                 <datalist id="maxRangeOptions"></datalist>
             </div>
 
@@ -611,12 +607,42 @@
             }
         }
 
-        window.onload = function() {
-            populateDatalist('numPeopleOptions', 999);
-            populateDatalist('minRangeOptions', 999);
-            populateDatalist('maxRangeOptions', 999);
-            loadFromCookies();
+window.onload = function() {
+    populateDatalist('numPeopleOptions', 50); // 用合適的範圍
+    populateDatalist('minRangeOptions', 100); // 用合適的範圍
+    populateDatalist('maxRangeOptions', 100); // 用合適的範圍
+    loadFromCookies(); // 如果有這個函數的話
+
+    // 添加點擊事件監聽器
+    handleDatalistClick('numPeopleOptions');
+    handleDatalistClick('minRangeOptions');
+    handleDatalistClick('maxRangeOptions');
+}
+
+
+function populateDatalist(datalistId, range) {
+    const datalist = document.getElementById(datalistId);
+    datalist.innerHTML = ''; // 清空現有選項
+    for (let i = 1; i <= range; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        datalist.appendChild(option);
+    }
+}
+
+
+function handleDatalistClick(datalistId) {
+    document.getElementById(datalistId).addEventListener('click', function(event) {
+        if (event.target.tagName === 'OPTION') {
+            removeOptionFromDatalist('minRangeOptions', event.target.value);
+            removeOptionFromDatalist('maxRangeOptions', event.target.value);
+            removeOptionFromDatalist('numPeopleOptions', event.target.value);
         }
+    });
+}
+
+
+
 </script>
 
 
