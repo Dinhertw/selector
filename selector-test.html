@@ -63,6 +63,12 @@
         }
 
         .input-container {
+            display: flex;
+            gap: 20px;
+            margin: 10px 0;
+        }
+
+        .select {
             flex: 1;
             padding: 15px;
             font-size: 20px;
@@ -70,7 +76,6 @@
             border-radius: 5px;
             background-color: #fff;
             cursor: pointer;
-            display: flex;
         }
 
         select:focus {
@@ -262,15 +267,15 @@
             <h1>選號器</h1>
             
             <label for="numPeople">選擇人數:</label>
-            <input class="input-container" list="numPeopleOptions" id="numPeople" name="numPeople">
+            <input class="select" list="numPeopleOptions" id="numPeople" name="numPeople">
             <datalist id="numPeopleOptions"></datalist>
 
             <label for="numRange">號碼範圍:</label>
-            <div>
-                <input class="input-container" list="minRangeOptions" id="minRange" name="minRange">
+            <div class="input-container">
+                <input class="select" list="minRangeOptions" id="minRange" name="minRange">
                 <datalist id="minRangeOptions"></datalist>
 
-                <input class="input-container" list="maxRangeOptions" id="maxRange" name="maxRange">
+                <input class="select" list="maxRangeOptions" id="maxRange" name="maxRange">
                 <datalist id="maxRangeOptions"></datalist>
             </div>
 
