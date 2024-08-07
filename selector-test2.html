@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>選號器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+            width: 700px;
+            height: 600px;
+            padding: 20px;
+        }
+
+        .main-content, .history-content {
+            padding: 20px;
+        }
+
+        .main-content {
+            border-right: 1px solid #ddd;
+        }
+
+        .history-content {
+            max-width: 300px;
+            width: 100%;
+        }
+
+        h1, h2 {
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 20px;
+            margin: 10px 0;
+        }
+
+        input[type="number"] {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #results {
+            margin-top: 20px;
+        }
+
+        #resultsList, #historyList {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .history-item {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        #resultsList li {
+            font-size: 150px;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        #historyList {
+            height: 400px;
+            width: 140px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f2f2f2;
+        }
+
+        .number-animation {
+            font-size: 20px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: numberChange 0.1s linear infinite;
+        }
+
+        .error-message {
+            color: #ff0000;
+            background-color: #f2dede;
+            border: 1px solid #ebccd1;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .footer-text {
+            font-size: 7px;
+            position: fixed;
+            right: -7px;
+            bottom: -7px;
+            color: #fff;
+            padding: 10px;
+            opacity: 0.7;
+        }
+
+        @keyframes numberChange {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Custom Select Styles */
+        .custom-select {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .custom-select input {
+            border: 1px solid #ccc;
+            padding: 8px;
+            width: 100px;
+        }
+
+        .select-items {
+            position: absolute;
+            background-color: #f1f1f1;
+            border: 1px solid #ccc;
+            border-top: none;
+            z-index: 99;
+            max-height: 150px;
+            overflow-y: auto;
+            width: 100px;
+            display: none; /* 默认隐藏下拉列表 */
+        }
+
+        .select-items div {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .select-items div:hover {
+            background-color: #ddd;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f075;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            max-width: 600px;
+            max-height: 75%;
+            border-radius: 5px;
+            position: relative;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+        }
+
+        .modal-body {
+            padding-bottom: 20px;
+            max-width: 100%;
+            max-height: 300px;
+            overflow: auto;
+        }
+
+        .modal-footer {
+            text-align: right;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .result-number, .loading {
+            font-size: 125px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 125px;
+            color: #000;
+            border-radius: 5px;
+        }
+
+        .generating-modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .generating-animation {
+            animation: numberChange 0.1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">
+            <h1>選號器</h1>
+            <label for="numPeople">選擇人數:</label>
+            <div class="custom-select">
+                <input type="text" id="numPeople" name="numPeople" placeholder="選擇人數">
+                <div class="select-items" id="numPeopleOptions"></div>
+            </div>
+
+            <label for="numRange">號碼範圍:</label>
+            <div class="input-container">
+                <div class="custom-select">
+                    <input type="text" id="minRange" name="minRange" placeholder="最小值">
+                    <div class="select-items" id="minOptions"></div>
+                </div>
+                <div class="custom-select">
+                    <input type="text" id="maxRange" name="maxRange" placeholder="最大值">
+                    <div class="select-items" id="maxOptions"></div>
+                </div>
+            </div>
+
+            <button id="generateButton">生成號碼</button>
+            <div id="errorMessage" class="error-message"></div>
+            <label for="allowDuplicates">
+                <input type="checkbox" id="allowDuplicates" name="allowDuplicates">
+                重複選號(不會記錄)
+            </label>
+
+            <div id="results">
+                <ul id="resultsList"></ul>
+            </div>
+        </div>
+
+        <div class="history-content" id="history">
+            <h2>歷史記錄:</h2>
+            <ul id="historyList"></ul>
+            <button onclick="clearHistory()">清除歷史記錄</button>
+        </div>
+    </div>
+
+    <!-- Modal for Generating Numbers -->
+    <div id="generatingModal" class="modal">
+        <div class="modal-content generating-modal-content">
+            <div class="modal-header">
+                <h2>讓我們掌聲歡迎.....</h2>
+            </div>
+            <div class="modal-body">
+                <div id="loadingAnimation" class="generating-animation">0</div>
+                <div id="randomNumber" class="result-number"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Displaying Results -->
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>生成結果</h2>
+                <span class="close" onclick="closeResultModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="resultDisplay"></div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeResultModal()">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function populateOptions(containerId, range) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = ''; // 清除现有选项
+            for (let i = 1; i <= range; i++) {
+                const option = document.createElement('div');
+                option.textContent = i;
+                option.dataset.value = i;
+                container.appendChild(option);
+            }
+        }
+
+        function initializeCustomSelect(inputId, containerId) {
+            const inputElement = document.getElementById(inputId);
+            const itemsContainer = document.getElementById(containerId);
+
+            // Toggle visibility of options when clicking on input
+            inputElement.addEventListener('focus', function() {
+                itemsContainer.style.display = 'block'; // Show options
+            });
+
+            // Handle option selection
+            itemsContainer.addEventListener('click', function(event) {
+                if (event.target.tagName === 'DIV') {
+                    inputElement.value = event.target.textContent;
+                    itemsContainer.style.display = 'none'; // Hide options after selection
+                }
+            });
+
+            // Hide dropdown if clicking outside
+            document.addEventListener('click', function(event) {
+                if (!event.target.matches(`#${inputId}`)) {
+                    itemsContainer.style.display = 'none'; // Hide options
+                }
+            });
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        function clearHistory() {
+            document.getElementById('historyList').innerHTML = '';
+            saveHistoryToCookies([]);
+        }
+
+        function getHistoryFromCookies() {
+            const history = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('history='))
+                ?.split('=')[1];
+            return history ? JSON.parse(decodeURIComponent(history)) : [];
+        }
+
+        function saveHistoryToCookies(history) {
+            document.cookie = `history=${encodeURIComponent(JSON.stringify(history))}; path=/; max-age=${60 * 60 * 24 * 365}`;
+        }
+
+        function getRangeFromCookies() {
+            const minRange = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('minRange='))
+                ?.split('=')[1];
+            const maxRange = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('maxRange='))
+                ?.split('=')[1];
+            return {
+                min: minRange ? parseInt(minRange, 10) : 1,
+                max: maxRange ? parseInt(maxRange, 10) : 50
+            };
+        }
+
+        function saveRangeToCookies(minRange, maxRange) {
+            document.cookie = `minRange=${minRange}; path=/; max-age=${60 * 60 * 24 * 365}`;
+            document.cookie = `maxRange=${maxRange}; path=/; max-age=${60 * 60 * 24 * 365}`;
+        }
+
+        function generateNumbers() {
+            const numPeople = parseInt(document.getElementById('numPeople').value, 10);
+            const minRange = parseInt(document.getElementById('minRange').value, 10);
+            const maxRange = parseInt(document.getElementById('maxRange').value, 10);
+            const allowDuplicates = document.getElementById('allowDuplicates').checked;
+
+            if (isNaN(numPeople) || isNaN(minRange) || isNaN(maxRange)) {
+                showError('请确保所有输入字段都有有效的值。');
+                return;
+            }
+
+            if (minRange > maxRange) {
+                showError('最小值不能大于最大值。');
+                return;
+            }
+
+            const historyItems = getHistoryFromCookies();
+            const allNumbers = Array.from({ length: maxRange - minRange + 1 }, (_, i) => i + minRange);
+            const availableNumbers = allNumbers.filter(num => !historyItems.includes(num));
+
+            if (availableNumbers.length < numPeople) {
+                showError('可用的号碼不足以生成所需的人數。');
+                return;
+            }
+
+            showModal('generatingModal');
+
+            let animationInterval;
+            let results = [];
+            const usedNumbers = new Set(); // Track used numbers
+
+            // Simulate number generation with delay and animation
+            animationInterval = setInterval(() => {
+                const randomNum = allNumbers[Math.floor(Math.random() * allNumbers.length)];
+                document.getElementById('loadingAnimation').textContent = randomNum;
+            }, 100);
+
+            setTimeout(() => {
+                while (results.length < numPeople) {
+                    let number = allNumbers[Math.floor(Math.random() * allNumbers.length)];
+                    if (!allowDuplicates && (results.includes(number) || usedNumbers.has(number))) {
+                        continue;
+                    }
+                    results.push(number);
+                    usedNumbers.add(number);
+                }
+
+                clearInterval(animationInterval);
+                document.getElementById('loadingAnimation').style.display = 'none';
+                document.getElementById('randomNumber').textContent = results.join(', ');
+
+                setTimeout(() => {
+                    closeModal('generatingModal');
+                    displayResults(results);
+                    if (!allowDuplicates) {
+                        saveHistory(results);
+                    }
+                }, 1000);
+            }, 2000);
+        }
+
+        function displayResults(results) {
+            const resultDisplay = document.getElementById('resultDisplay');
+            resultDisplay.innerHTML = ''; // Clear previous results
+            results.forEach(result => {
+                const div = document.createElement('div');
+                div.textContent = result;
+                div.className = 'result-number';
+                resultDisplay.appendChild(div);
+            });
+            showModal('resultModal');
+        }
+
+        function saveHistory(results) {
+            const historyList = document.getElementById('historyList');
+            const historyItems = getHistoryFromCookies();
+
+            results.forEach(result => {
+                if (!historyItems.includes(result)) {
+                    const li = document.createElement('li');
+                    li.textContent = result;
+                    li.className = 'history-item';
+                    historyList.appendChild(li);
+                    historyItems.push(result);
+                }
+            });
+
+            saveHistoryToCookies(historyItems);
+        }
+
+        function closeResultModal() {
+            closeModal('resultModal');
+        }
+
+        window.onload = function() {
+            const { min, max } = getRangeFromCookies();
+            document.getElementById('minRange').value = min;
+            document.getElementById('maxRange').value = max;
+
+            const historyItems = getHistoryFromCookies();
+            const historyList = document.getElementById('historyList');
+            historyItems.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                li.className = 'history-item';
+                historyList.appendChild(li);
+            });
+
+            const range = 50;
+            populateOptions('numPeopleOptions', range); // Populate options with range
+            populateOptions('minOptions', range); // Populate options with range
+            populateOptions('maxOptions', range); // Populate options with range
+            initializeCustomSelect('numPeople', 'numPeopleOptions');
+            initializeCustomSelect('minRange', 'minOptions');
+            initializeCustomSelect('maxRange', 'maxOptions');
+
+            document.getElementById('generateButton').addEventListener('click', generateNumbers);
+
+            document.getElementById('numPeople').value = 1;
+
+            document.getElementById('minRange').addEventListener('change', () => {
+                clearHistory();
+                saveRangeToCookies(document.getElementById('minRange').value, document.getElementById('maxRange').value);
+            });
+
+            document.getElementById('maxRange').addEventListener('change', () => {
+                clearHistory();
+                saveRangeToCookies(document.getElementById('minRange').value, document.getElementById('maxRange').value);
+            });
+
+            document.getElementById('allowDuplicates').addEventListener('change', clearHistory);
+        };
+    </script>
+</body>
+</html>
