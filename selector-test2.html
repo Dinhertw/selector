@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>選號器</title>
+    <title>选号器</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -54,10 +54,38 @@
             margin: 10px 0;
         }
 
-        input[type="number"] {
-            flex: 1;
-            padding: 10px;
-            font-size: 16px;
+        .custom-select {
+            position: relative;
+            display: inline-block;
+            width: 100px;
+        }
+
+        .custom-select input {
+            border: 1px solid #ccc;
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .select-items {
+            position: absolute;
+            background-color: #f1f1f1;
+            border: 1px solid #ccc;
+            border-top: none;
+            z-index: 99;
+            max-height: 150px;
+            overflow-y: auto;
+            width: 100%;
+            display: none; /* 默认隐藏下拉列表 */
+        }
+
+        .select-items div {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .select-items div:hover {
+            background-color: #ddd;
         }
 
         button {
@@ -113,15 +141,6 @@
             background-color: #f2f2f2;
         }
 
-        .number-animation {
-            font-size: 20px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: numberChange 0.1s linear infinite;
-        }
-
         .error-message {
             color: #ff0000;
             background-color: #f2dede;
@@ -141,46 +160,6 @@
             color: #fff;
             padding: 10px;
             opacity: 0.7;
-        }
-
-        @keyframes numberChange {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        /* Custom Select Styles */
-        .custom-select {
-            position: relative;
-            display: inline-block;
-            width: 100%;
-        }
-
-        .custom-select input {
-            border: 1px solid #ccc;
-            padding: 8px;
-            width: 100px;
-        }
-
-        .select-items {
-            position: absolute;
-            background-color: #f1f1f1;
-            border: 1px solid #ccc;
-            border-top: none;
-            z-index: 99;
-            max-height: 150px;
-            overflow-y: auto;
-            width: 100px;
-            display: none; /* 默认隐藏下拉列表 */
-        }
-
-        .select-items div {
-            padding: 8px;
-            cursor: pointer;
-        }
-
-        .select-items div:hover {
-            background-color: #ddd;
         }
 
         /* Modal Styles */
@@ -220,10 +199,13 @@
         }
 
         .modal-body {
+            display: flex;
             padding-bottom: 20px;
             max-width: 100%;
             max-height: 300px;
             overflow: auto;
+            justify-content: flex-start;
+            flex-direction: column;
         }
 
         .modal-footer {
@@ -232,6 +214,7 @@
             padding-top: 10px;
             margin-top: 10px;
         }
+        
 
         .close {
             color: #aaa;
@@ -269,7 +252,14 @@
         }
 
         .generating-animation {
+            font-size: 125px;
+            color: #000;
             animation: numberChange 0.1s linear infinite;
+        }
+
+        @keyframes numberChange {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
         }
     </style>
 </head>
@@ -279,19 +269,19 @@
             <h1>選號器</h1>
             <label for="numPeople">選擇人數:</label>
             <div class="custom-select">
-                <input type="text" id="numPeople" name="numPeople" placeholder="選擇人數">
+                <input type="text" id="numPeopleInput" placeholder="Enter or select number">
                 <div class="select-items" id="numPeopleOptions"></div>
             </div>
 
             <label for="numRange">號碼範圍:</label>
             <div class="input-container">
                 <div class="custom-select">
-                    <input type="text" id="minRange" name="minRange" placeholder="最小值">
-                    <div class="select-items" id="minOptions"></div>
+                    <input type="text" id="minRangeInput" placeholder="Min">
+                    <div class="select-items" id="minRangeOptions"></div>
                 </div>
                 <div class="custom-select">
-                    <input type="text" id="maxRange" name="maxRange" placeholder="最大值">
-                    <div class="select-items" id="maxOptions"></div>
+                    <input type="text" id="maxRangeInput" placeholder="Max">
+                    <div class="select-items" id="maxRangeOptions"></div>
                 </div>
             </div>
 
@@ -321,8 +311,8 @@
                 <h2>讓我們掌聲歡迎.....</h2>
             </div>
             <div class="modal-body">
-                <div id="loadingAnimation" class="generating-animation">0</div>
-                <div id="randomNumber" class="result-number"></div>
+                <div class="loading"></div>
+                <div id="randomNumber"></div>
             </div>
         </div>
     </div>
@@ -331,11 +321,10 @@
     <div id="resultModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>生成結果</h2>
+                <h2>恭喜恭喜</h2>
                 <span class="close" onclick="closeResultModal()">&times;</span>
             </div>
-            <div class="modal-body">
-                <div id="resultDisplay"></div>
+            <div class="modal-body" id="resultList">
             </div>
             <div class="modal-footer">
                 <button onclick="closeResultModal()">關閉</button>
@@ -344,225 +333,282 @@
     </div>
 
     <script>
-        function populateOptions(containerId, range) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = ''; // 清除现有选项
-            for (let i = 1; i <= range; i++) {
-                const option = document.createElement('div');
-                option.textContent = i;
-                option.dataset.value = i;
-                container.appendChild(option);
-            }
-        }
+    // Functions for custom select dropdowns
+    function showDropdown(dropdownId) {
+        const dropdown = document.getElementById(dropdownId);
+        dropdown.style.display = "block";
+    }
 
-        function initializeCustomSelect(inputId, containerId) {
-            const inputElement = document.getElementById(inputId);
-            const itemsContainer = document.getElementById(containerId);
+    function hideDropdown(dropdownId) {
+        const dropdown = document.getElementById(dropdownId);
+        dropdown.style.display = "none";
+    }
 
-            // Toggle visibility of options when clicking on input
-            inputElement.addEventListener('focus', function() {
-                itemsContainer.style.display = 'block'; // Show options
+    function setupCustomSelect(inputId, dropdownId, options) {
+        const input = document.getElementById(inputId);
+        const dropdown = document.getElementById(dropdownId);
+
+        input.addEventListener("focus", () => showDropdown(dropdownId));
+        input.addEventListener("blur", () => setTimeout(() => hideDropdown(dropdownId), 200));
+
+        options.forEach(option => {
+            const div = document.createElement("div");
+            div.textContent = option;
+            div.addEventListener("click", () => {
+                input.value = option;
+                hideDropdown(dropdownId);
             });
+            dropdown.appendChild(div);
+        });
+    }
 
-            // Handle option selection
-            itemsContainer.addEventListener('click', function(event) {
-                if (event.target.tagName === 'DIV') {
-                    inputElement.value = event.target.textContent;
-                    itemsContainer.style.display = 'none'; // Hide options after selection
-                }
-            });
+    // Setting up the custom select dropdowns
+    setupCustomSelect("numPeopleInput", "numPeopleOptions", ["1", "2", "3", "4", "5", "6"]);
+    setupCustomSelect("minRangeInput", "minRangeOptions", Array.from({ length: 100 }, (_, i) => i + 1));
+    setupCustomSelect("maxRangeInput", "maxRangeOptions", Array.from({ length: 100 }, (_, i) => i + 1));
 
-            // Hide dropdown if clicking outside
-            document.addEventListener('click', function(event) {
-                if (!event.target.matches(`#${inputId}`)) {
-                    itemsContainer.style.display = 'none'; // Hide options
-                }
-            });
-        }
+    let history = [];
+    let selectedNumbers = new Set();
+    let minRange = 0;
+    let maxRange = 0;
+    let numPeople = 0;
+    let interval; // 用于存储动画效果的Interval
 
-        function showModal(modalId) {
-            document.getElementById(modalId).style.display = 'block';
-        }
+    function setCookie(name, value, days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        const expires = "expires=" + date.toUTCString();
+        document.cookie = name + "=" + value + ";" + expires + ";path=/";
+    }
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        function showError(message) {
-            const errorMessage = document.getElementById('errorMessage');
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-        }
-
-        function clearHistory() {
-            document.getElementById('historyList').innerHTML = '';
-            saveHistoryToCookies([]);
-        }
-
-        function getHistoryFromCookies() {
-            const history = document.cookie
-                .split('; ')
-                .find(row => row.startsWith('history='))
-                ?.split('=')[1];
-            return history ? JSON.parse(decodeURIComponent(history)) : [];
-        }
-
-        function saveHistoryToCookies(history) {
-            document.cookie = `history=${encodeURIComponent(JSON.stringify(history))}; path=/; max-age=${60 * 60 * 24 * 365}`;
-        }
-
-        function getRangeFromCookies() {
-            const minRange = document.cookie
-                .split('; ')
-                .find(row => row.startsWith('minRange='))
-                ?.split('=')[1];
-            const maxRange = document.cookie
-                .split('; ')
-                .find(row => row.startsWith('maxRange='))
-                ?.split('=')[1];
-            return {
-                min: minRange ? parseInt(minRange, 10) : 1,
-                max: maxRange ? parseInt(maxRange, 10) : 50
-            };
-        }
-
-        function saveRangeToCookies(minRange, maxRange) {
-            document.cookie = `minRange=${minRange}; path=/; max-age=${60 * 60 * 24 * 365}`;
-            document.cookie = `maxRange=${maxRange}; path=/; max-age=${60 * 60 * 24 * 365}`;
-        }
-
-        function generateNumbers() {
-            const numPeople = parseInt(document.getElementById('numPeople').value, 10);
-            const minRange = parseInt(document.getElementById('minRange').value, 10);
-            const maxRange = parseInt(document.getElementById('maxRange').value, 10);
-            const allowDuplicates = document.getElementById('allowDuplicates').checked;
-
-            if (isNaN(numPeople) || isNaN(minRange) || isNaN(maxRange)) {
-                showError('请确保所有输入字段都有有效的值。');
-                return;
+    function getCookie(name) {
+        const cname = name + "=";
+        const decodedCookie = decodeURIComponent(document.cookie);
+        const ca = decodedCookie.split(';');
+        for (let i = 0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
             }
-
-            if (minRange > maxRange) {
-                showError('最小值不能大于最大值。');
-                return;
+            if (c.indexOf(cname) == 0) {
+                return c.substring(cname.length, c.length);
             }
+        }
+        return "";
+    }
 
-            const historyItems = getHistoryFromCookies();
-            const allNumbers = Array.from({ length: maxRange - minRange + 1 }, (_, i) => i + minRange);
-            const availableNumbers = allNumbers.filter(num => !historyItems.includes(num));
+    function loadFromCookies() {
+        const savedHistory = getCookie("history");
+        const savedSelectedNumbers = getCookie("selectedNumbers");
+        minRange = parseInt(getCookie("minRange"));
+        maxRange = parseInt(getCookie("maxRange"));
+        numPeople = parseInt(getCookie("numPeople"));
 
-            if (availableNumbers.length < numPeople) {
-                showError('可用的号碼不足以生成所需的人數。');
-                return;
-            }
+        if (savedHistory) {
+            history = JSON.parse(savedHistory);
+            updateHistory(document.getElementById('historyList'));
+        }
 
-            showModal('generatingModal');
+        if (savedSelectedNumbers) {
+            selectedNumbers = new Set(JSON.parse(savedSelectedNumbers));
+        }
 
-            let animationInterval;
-            let results = [];
-            const usedNumbers = new Set(); // Track used numbers
+        if (!isNaN(minRange)) {
+            document.getElementById('minRangeInput').value = minRange; // 更新为正确的id
+        }
 
-            // Simulate number generation with delay and animation
-            animationInterval = setInterval(() => {
-                const randomNum = allNumbers[Math.floor(Math.random() * allNumbers.length)];
-                document.getElementById('loadingAnimation').textContent = randomNum;
-            }, 100);
+        if (!isNaN(maxRange)) {
+            document.getElementById('maxRangeInput').value = maxRange; // 更新为正确的id
+        }
 
-            setTimeout(() => {
-                while (results.length < numPeople) {
-                    let number = allNumbers[Math.floor(Math.random() * allNumbers.length)];
-                    if (!allowDuplicates && (results.includes(number) || usedNumbers.has(number))) {
-                        continue;
-                    }
-                    results.push(number);
-                    usedNumbers.add(number);
-                }
+        if (!isNaN(numPeople)) {
+            document.getElementById('numPeopleInput').value = numPeople; // 更新为正确的id
+        }
+    }
 
-                clearInterval(animationInterval);
-                document.getElementById('loadingAnimation').style.display = 'none';
-                document.getElementById('randomNumber').textContent = results.join(', ');
+    function saveToCookies() {
+        setCookie("history", JSON.stringify(history), 30);
+        setCookie("selectedNumbers", JSON.stringify(Array.from(selectedNumbers)), 30);
+        setCookie("minRange", minRange, 30);
+        setCookie("maxRange", maxRange, 30);
+        setCookie("numPeople", numPeople, 30);
+    }
 
-                setTimeout(() => {
-                    closeModal('generatingModal');
-                    displayResults(results);
+function generateNumbers() {
+    numPeople = parseInt(document.getElementById('numPeopleInput').value);  // 确保ID正确
+    minRange = parseInt(document.getElementById('minRangeInput').value);    // 确保ID正确
+    maxRange = parseInt(document.getElementById('maxRangeInput').value);    // 确保ID正确
+    const allowDuplicates = document.getElementById('allowDuplicates').checked;
+    const resultsList = document.getElementById('resultsList');
+    const historyList = document.getElementById('historyList');
+    const errorMessage = document.getElementById('errorMessage');
+    const generatingModal = document.getElementById('generatingModal');
+    const modalBody = document.getElementById('modalBody');
+
+    generatingModal.style.display = 'block';
+
+    resultsList.innerHTML = '';
+
+    if (isNaN(minRange) || isNaN(maxRange) || minRange >= maxRange) {
+        showError('請輸入有效的號碼範圍');
+        return;
+    }
+
+    if ((maxRange - minRange + 1) < numPeople) {
+        showError('號碼範圍不夠選擇人數，請更改選擇人數或號碼範圍');
+        return;
+    }
+
+    if (!allowDuplicates && (selectedNumbers.size + numPeople > (maxRange - minRange + 1))) {
+        showError('所有號碼已選完，請清除歷史記錄');
+        return;
+    }
+
+    errorMessage.style.display = 'none';
+    openGeneratingModal();
+
+    let count = 0;
+    interval = setInterval(() => {
+        const randomNumber = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+        const loadingText = document.querySelector('.loading');
+        loadingText.textContent = randomNumber;
+        count++;
+
+        if (count >= 20) {
+            clearInterval(interval);
+            closeGeneratingModal();
+            const selected = new Set();
+
+            while (selected.size < numPeople) {
+                const randomNumber = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+                if (allowDuplicates || !selectedNumbers.has(randomNumber)) {
+                    selected.add(randomNumber);
                     if (!allowDuplicates) {
-                        saveHistory(results);
+                        selectedNumbers.add(randomNumber);
                     }
-                }, 1000);
-            }, 2000);
-        }
-
-        function displayResults(results) {
-            const resultDisplay = document.getElementById('resultDisplay');
-            resultDisplay.innerHTML = ''; // Clear previous results
-            results.forEach(result => {
-                const div = document.createElement('div');
-                div.textContent = result;
-                div.className = 'result-number';
-                resultDisplay.appendChild(div);
-            });
-            showModal('resultModal');
-        }
-
-        function saveHistory(results) {
-            const historyList = document.getElementById('historyList');
-            const historyItems = getHistoryFromCookies();
-
-            results.forEach(result => {
-                if (!historyItems.includes(result)) {
-                    const li = document.createElement('li');
-                    li.textContent = result;
-                    li.className = 'history-item';
-                    historyList.appendChild(li);
-                    historyItems.push(result);
                 }
-            });
+            }
 
-            saveHistoryToCookies(historyItems);
+            if (selected.size === numPeople) {
+                if (!allowDuplicates) {
+                    history.push(Array.from(selected));
+                    saveToCookies();
+                }
+                updateHistory(historyList);
+                openResultModal(selected);
+                if (!allowDuplicates && selectedNumbers.size === (maxRange - minRange + 1)) {
+                    document.getElementById('generateButton').disabled = true;
+                    showError('所有號碼已選完，請清除歷史記錄');
+                }
+            }
         }
+    }, 75);
 
-        function closeResultModal() {
-            closeModal('resultModal');
+    // 确保 modal-body 在下一帧时滚动到顶部
+    requestAnimationFrame(() => {
+        if (modalBody) {
+            modalBody.scrollTop = 0;
         }
+    });
+}
 
-        window.onload = function() {
-            const { min, max } = getRangeFromCookies();
-            document.getElementById('minRange').value = min;
-            document.getElementById('maxRange').value = max;
 
-            const historyItems = getHistoryFromCookies();
-            const historyList = document.getElementById('historyList');
-            historyItems.forEach(item => {
-                const li = document.createElement('li');
-                li.textContent = item;
-                li.className = 'history-item';
-                historyList.appendChild(li);
-            });
+    function openGeneratingModal() {
+        const generatingModal = document.getElementById('generatingModal');
+        generatingModal.style.display = 'block';
+        
 
-            const range = 50;
-            populateOptions('numPeopleOptions', range); // Populate options with range
-            populateOptions('minOptions', range); // Populate options with range
-            populateOptions('maxOptions', range); // Populate options with range
-            initializeCustomSelect('numPeople', 'numPeopleOptions');
-            initializeCustomSelect('minRange', 'minOptions');
-            initializeCustomSelect('maxRange', 'maxOptions');
+        
+    }
 
-            document.getElementById('generateButton').addEventListener('click', generateNumbers);
+    function closeGeneratingModal() {
+        const generatingModal = document.getElementById('generatingModal');
+        generatingModal.style.display = 'none';
+    }
 
-            document.getElementById('numPeople').value = 1;
+    function openResultModal(selected) {
+        const resultList = document.getElementById('resultList'); 
+        resultList.innerHTML = Array.from(selected).map(num => `<div class="result-number">${num}</div>`).join('');
+        const resultModal = document.getElementById('resultModal');
+        resultModal.style.display = 'block';
 
-            document.getElementById('minRange').addEventListener('change', () => {
-                clearHistory();
-                saveRangeToCookies(document.getElementById('minRange').value, document.getElementById('maxRange').value);
-            });
+    }
+    
+    
 
-            document.getElementById('maxRange').addEventListener('change', () => {
-                clearHistory();
-                saveRangeToCookies(document.getElementById('minRange').value, document.getElementById('maxRange').value);
-            });
+    function closeResultModal() {
+        const resultModal = document.getElementById('resultModal');
+        resultModal.style.display = 'none';
+    }
 
-            document.getElementById('allowDuplicates').addEventListener('change', clearHistory);
-        };
+    function showError(message) {
+        const errorMessage = document.getElementById('errorMessage');
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+    }
+
+    function clearErrorMessage() {
+        const errorMessage = document.getElementById('errorMessage');
+        errorMessage.style.display = 'none';
+    }
+
+    function updateHistory(historyList) {
+        historyList.innerHTML = '';
+        history.forEach((item, index) => {
+            const li = document.createElement('li');
+            li.className = 'history-item';
+            li.textContent = `${item.join(', ')}`;
+            historyList.appendChild(li);
+        });
+
+        // 使用 requestAnimationFrame 确保在渲染后滚动到顶部
+        requestAnimationFrame(() => {
+        historyList.scrollTop = historyList.scrollHeight;
+        });
+    }
+
+    function clearHistory() {
+        history = [];
+        selectedNumbers.clear();
+        document.getElementById('historyList').innerHTML = '';
+        setCookie("history", "", -1);
+        setCookie("selectedNumbers", "", -1);
+        document.getElementById('generateButton').disabled = false;
+        clearErrorMessage(); // Clear error message when history is cleared
+    }
+
+window.onload = () => {
+    loadFromCookies();
+    document.getElementById('generateButton').addEventListener('click', generateNumbers);
+
+    // 监听"重複選號(不會記錄)"选项更改
+    document.getElementById('allowDuplicates').addEventListener('change', () => {
+        clearHistory(); // 清除歷史記錄
+        clearErrorMessage(); // 清除錯誤訊息
+    });
+
+    // 监听號碼範圍输入框的更改
+    document.getElementById('minRangeInput').addEventListener('change', () => {
+        clearHistory(); // 清除歷史記錄
+        clearErrorMessage(); // 清除錯誤訊息
+    });
+
+    document.getElementById('maxRangeInput').addEventListener('change', () => {
+        clearHistory(); // 清除歷史記錄
+        clearErrorMessage(); // 清除錯誤訊息
+    });
+        document.getElementById('minRangeOptions').addEventListener('click', () => {
+        clearHistory(); // 清除歷史記錄
+        clearErrorMessage(); // 清除錯誤訊息
+    });
+
+    document.getElementById('maxRangeOptions').addEventListener('click', () => {
+        clearHistory(); // 清除歷史記錄
+        clearErrorMessage(); // 清除錯誤訊息
+    });
+};
+
+
     </script>
 </body>
 </html>
