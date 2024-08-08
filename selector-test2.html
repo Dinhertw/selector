@@ -344,28 +344,84 @@
         dropdown.style.display = "none";
     }
 
-    function setupCustomSelect(inputId, dropdownId, options) {
-        const input = document.getElementById(inputId);
-        const dropdown = document.getElementById(dropdownId);
+function setupCustomSelect(inputId, dropdownId, fetchOptions) {
+    const input = document.getElementById(inputId);
+    const dropdown = document.getElementById(dropdownId);
 
-        input.addEventListener("focus", () => showDropdown(dropdownId));
-        input.addEventListener("blur", () => setTimeout(() => hideDropdown(dropdownId), 200));
+    let start = 0;
+    const limit = 10; // 每次加载的选项数
+    let loading = false;
+    let hasMoreOptions = true;
 
-        options.forEach(option => {
-            const div = document.createElement("div");
-            div.textContent = option;
-            div.addEventListener("click", () => {
-                input.value = option;
-                hideDropdown(dropdownId);
+    function loadOptions() {
+        if (loading || !hasMoreOptions) return;
+        loading = true;
+
+        fetchOptions(start, limit).then(options => {
+            if (options.length < limit) {
+                hasMoreOptions = false; // 如果加载的选项数少于limit，表示没有更多选项了
+            }
+
+            options.forEach(option => {
+                const div = document.createElement("div");
+                div.textContent = option;
+                div.addEventListener("click", () => {
+                    input.value = option;
+                    hideDropdown(dropdownId);
+                });
+                dropdown.appendChild(div);
             });
-            dropdown.appendChild(div);
+
+            start += limit;
+            loading = false;
+
+            // 监听滚动事件来加载更多
+            dropdown.addEventListener('scroll', onScroll);
         });
     }
 
-    // Setting up the custom select dropdowns
-    setupCustomSelect("numPeopleInput", "numPeopleOptions", ["1", "2", "3", "4", "5", "6"]);
-    setupCustomSelect("minRangeInput", "minRangeOptions", Array.from({ length: 100 }, (_, i) => i + 1));
-    setupCustomSelect("maxRangeInput", "maxRangeOptions", Array.from({ length: 100 }, (_, i) => i + 1));
+    function onScroll() {
+        const dropdownScrollTop = dropdown.scrollTop;
+        const dropdownScrollHeight = dropdown.scrollHeight;
+        const dropdownClientHeight = dropdown.clientHeight;
+
+        // 如果滚动到底部，加载更多选项
+        if (dropdownScrollTop + dropdownClientHeight >= dropdownScrollHeight) {
+            loadOptions();
+        }
+    }
+
+    input.addEventListener("focus", () => {
+        showDropdown(dropdownId);
+        loadOptions(); // 加载初始选项
+    });
+
+    input.addEventListener("blur", () => {
+        setTimeout(() => hideDropdown(dropdownId), 200);
+    });
+
+    // 监听滚动事件来加载更多
+    dropdown.addEventListener('scroll', onScroll);
+}
+
+// 模拟一个从服务器或其他源获取选项的函数
+function fetchOptions(start, limit) {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            // 生成模拟数据
+            const options = Array.from({ length: limit }, (_, i) => start + i + 1);
+            resolve(options);
+        }); 
+    });
+}
+
+// 初始化自定义选择下拉菜单
+setupCustomSelect("minRangeInput", "minRangeOptions", fetchOptions);
+setupCustomSelect("maxRangeInput", "maxRangeOptions", fetchOptions);
+
+
+
+
 
     let history = [];
     let selectedNumbers = new Set();
@@ -445,7 +501,7 @@ function generateNumbers() {
     const generatingModal = document.getElementById('generatingModal');
     const modalBody = document.getElementById('modalBody');
 
-    generatingModal.style.display = 'block';
+
 
     resultsList.innerHTML = '';
 
@@ -463,7 +519,7 @@ function generateNumbers() {
         showError('所有號碼已選完，請清除歷史記錄');
         return;
     }
-
+    generatingModal.style.display = 'block';
     errorMessage.style.display = 'none';
     openGeneratingModal();
 
@@ -506,8 +562,8 @@ function generateNumbers() {
 
     // 确保 modal-body 在下一帧时滚动到顶部
     requestAnimationFrame(() => {
-        if (modalBody) {
-            modalBody.scrollTop = 0;
+        if (resultList) {
+            resultList.scrollTop = 0;
         }
     });
 }
