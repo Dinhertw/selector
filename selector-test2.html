@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,11 +43,13 @@
         h1, h2 {
             text-align: center;
             margin: 10px 0;
+            font-size: 30px
         }
 
         label {
             display: block;
             margin: 10px 0;
+            font-size: 20px
         }
 
         .input-container {
@@ -68,7 +71,8 @@
             padding: 15px;
             width: 200px;
             box-sizing: border-box;
-            border-radius: 5px
+            border-radius: 5px;
+            font-size: 17px;
         }
 
         .select-items {
@@ -82,9 +86,10 @@
             display: none; /* 默认隐藏下拉列表 */
             border-radius: 5px;
             box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.5);
-            padding: 3px;
+            padding: 5px;
             box-sizing: border-box;
             overflow: auto; /* 确保出现滚动条 */
+            font-size: 17px
         }
 
         .select-items::-webkit-scrollbar {
@@ -110,6 +115,7 @@
         .select-items div {
             padding: 15px;
             cursor: pointer;
+            border-radius: 5px;
         }
 
         .select-items div:hover {
@@ -159,15 +165,35 @@
             margin-top: 20px;
         }
 
-        #historyList {
-            height: 400px;
-            width: 140px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 10px;
-            background-color: #f2f2f2;
-        }
+#historyList {
+    height: 400px; /* 设置容器高度 */
+    width: 200px; /* 设置容器宽度 */
+    overflow-y: auto; /* 启用垂直滚动条 */
+    border: 1px solid #ccc; /* 边框颜色和宽度 */
+    border-radius: 5px; /* 圆角边框 */
+    padding: 10px; /* 内边距 */
+    background-color: #f2f2f2; /* 背景颜色 */
+    box-sizing: border-box; /* 确保 padding 和 border 包含在元素的宽高内 */
+}
+
+#historyList::-webkit-scrollbar {
+    width: 8px; /* 设置滚动条宽度 */
+}
+
+#historyList::-webkit-scrollbar-thumb {
+    background-color: #888; /* 滚动条滑块颜色 */
+    border-radius: 10px; /* 滚动条滑块圆角 */
+}
+
+#historyList::-webkit-scrollbar-thumb:hover {
+    background-color: #555; /* 滚动条滑块悬停颜色 */
+}
+
+#historyList::-webkit-scrollbar-track {
+    background-color: #f2f2f2; /* 滚动条轨道颜色，与背景一致 */
+    border-radius: 10px; /* 滚动条轨道圆角 */
+}
+
 
         .error-message {
             color: #ff0000;
@@ -226,15 +252,39 @@
             margin: 0;
         }
 
-        .modal-body {
-            display: flex;
-            padding-bottom: 20px;
-            max-width: 100%;
-            max-height: 300px;
-            overflow: auto;
-            justify-content: flex-start;
-            flex-direction: column;
-        }
+.modal-body {
+    display: flex; /* 使用弹性布局 */
+    flex-direction: column; /* 垂直排列子元素 */
+    justify-content: flex-start; /* 子元素靠上对齐 */
+    padding: 20px; /* 内边距 */
+    max-width: 100%; /* 最大宽度 */
+    max-height: 300px; /* 最大高度 */
+    overflow-y: auto; /* 垂直滚动条 */
+    background-color: #fff; /* 背景颜色 */
+    border-radius: 5px; /* 圆角边框 */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* 阴影效果 */
+    box-sizing: border-box; /* 确保内边距和边框包含在元素的宽高内 */
+}
+
+.modal-body::-webkit-scrollbar {
+    width: 8px; /* 滚动条宽度 */
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background-color: #888; /* 滚动条滑块颜色 */
+    border-radius: 10px; /* 滚动条滑块圆角 */
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background-color: #555; /* 滚动条滑块悬停颜色 */
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background-color: #f2f2f2; /* 滚动条轨道颜色 */
+    border-radius: 10px; /* 滚动条轨道圆角 */
+}
+
+
 
         .modal-footer {
             text-align: right;
@@ -297,18 +347,18 @@
             <h1>選號器</h1>
             <label for="numPeople">選擇人數:</label>
             <div class="custom-select">
-                <input type="text" id="numPeopleInput" placeholder="Enter or select number">
+                <input type="number" id="numPeopleInput" placeholder="輸入或選擇">
                 <div class="select-items" id="numPeopleOptions"></div>
             </div>
 
             <label for="numRange">號碼範圍:</label>
             <div class="input-container">
                 <div class="custom-select">
-                    <input type="text" id="minRangeInput" placeholder="Min">
+                    <input type="number" id="minRangeInput" placeholder="最小值">
                     <div class="select-items" id="minRangeOptions"></div>
                 </div>
                 <div class="custom-select">
-                    <input type="text" id="maxRangeInput" placeholder="Max">
+                    <input type="number" id="maxRangeInput" placeholder="最大值">
                     <div class="select-items" id="maxRangeOptions"></div>
                 </div>
             </div>
@@ -519,20 +569,26 @@ setupCustomSelect("maxRangeInput", "maxRangeOptions", (start, limit) => fetchOpt
     }
 
 function generateNumbers() {
-    numPeople = parseInt(document.getElementById('numPeopleInput').value);  // 确保ID正确
-    minRange = parseInt(document.getElementById('minRangeInput').value);    // 确保ID正确
-    maxRange = parseInt(document.getElementById('maxRangeInput').value);    // 确保ID正确
+    numPeople = parseInt(document.getElementById('numPeopleInput').value);
+    minRange = parseInt(document.getElementById('minRangeInput').value);
+    maxRange = parseInt(document.getElementById('maxRangeInput').value);
     const allowDuplicates = document.getElementById('allowDuplicates').checked;
     const resultsList = document.getElementById('resultsList');
     const historyList = document.getElementById('historyList');
     const errorMessage = document.getElementById('errorMessage');
     const generatingModal = document.getElementById('generatingModal');
-    const modalBody = document.getElementById('modalBody');
+
 
 
 
     resultsList.innerHTML = '';
-
+    
+    if (numPeople <= 0) {
+        showError('號碼範圍不夠選擇人數，請更改選擇人數或號碼範圍');
+        return;
+    }
+        
+        
     if (isNaN(minRange) || isNaN(maxRange) || minRange >= maxRange) {
         showError('請輸入有效的號碼範圍');
         return;
@@ -588,12 +644,7 @@ function generateNumbers() {
         }
     }, 75);
 
-    // 确保 modal-body 在下一帧时滚动到顶部
-    requestAnimationFrame(() => {
-        if (resultList) {
-            resultList.scrollTop = 0;
-        }
-    });
+
 }
 
 
@@ -610,13 +661,23 @@ function generateNumbers() {
         generatingModal.style.display = 'none';
     }
 
-    function openResultModal(selected) {
-        const resultList = document.getElementById('resultList'); 
-        resultList.innerHTML = Array.from(selected).map(num => `<div class="result-number">${num}</div>`).join('');
-        const resultModal = document.getElementById('resultModal');
-        resultModal.style.display = 'block';
+function openResultModal(selected) {
+    const resultList = document.getElementById('resultList'); 
+    resultList.innerHTML = Array.from(selected).map(num => `<div class="result-number">${num}</div>`).join('');
+    const resultModal = document.getElementById('resultModal');
+    resultModal.style.display = 'block';
 
+    // 函数用于滚动到顶部
+    function scrollToTop() {
+        if (resultList) {
+            resultList.scrollTop = 0;
+        }
     }
+
+    // 直接调用 scrollToTop 函数
+    scrollToTop();
+}
+
     
     
 
