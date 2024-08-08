@@ -479,7 +479,7 @@ function setupCustomSelect(inputId, dropdownId, fetchOptions) {
     });
 
     input.addEventListener("blur", () => {
-        setTimeout(() => hideDropdown(dropdownId), 200);
+        setTimeout(() => hideDropdown(dropdownId));
     });
 
     // 監聽滾動事件來載入更多
