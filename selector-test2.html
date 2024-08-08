@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>选号器</title>
+    <link rel="shortcut icon" href="https://dinhertw.github.io/selector/icon.png" />
+    <title>選號器</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -386,7 +387,7 @@ function setupCustomSelect(inputId, dropdownId, fetchOptions) {
         const dropdownClientHeight = dropdown.clientHeight;
 
         // 如果滚动到底部，加载更多选项
-        if (dropdownScrollTop + dropdownClientHeight >= dropdownScrollHeight) {
+        if (dropdownScrollTop + dropdownClientHeight >= dropdownScrollHeight - 250) {
             loadOptions();
         }
     }
@@ -416,9 +417,9 @@ function fetchOptions(start, limit) {
 }
 
 // 初始化自定义选择下拉菜单
-setupCustomSelect("minRangeInput", "minRangeOptions", fetchOptions);
-setupCustomSelect("maxRangeInput", "maxRangeOptions", fetchOptions);
-
+setupCustomSelect("numPeopleInput", "numPeopleOptions", (start, limit) => fetchOptions(start, limit, 'numPeople'));
+setupCustomSelect("minRangeInput", "minRangeOptions", (start, limit) => fetchOptions(start, limit, 'range'));
+setupCustomSelect("maxRangeInput", "maxRangeOptions", (start, limit) => fetchOptions(start, limit, 'range'));
 
 
 
