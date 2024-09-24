@@ -452,7 +452,7 @@ function setupCustomSelect(inputId, dropdownId, fetchOptions) {
     const dropdown = document.getElementById(dropdownId);
 
     let start = 0;
-    const limit = 10; // 每次載入的選項數
+    const limit = 50; // 每次載入的選項數
     let loading = false;
     let hasMoreOptions = true;
 
@@ -462,7 +462,7 @@ function setupCustomSelect(inputId, dropdownId, fetchOptions) {
 
         fetchOptions(start, limit).then(options => {
             if (options.length < limit) {
-                hasMoreOptions = false; // 如果載入的選項數少於limit，表示沒有更多選項了
+                hasMoreOptions = true; // 如果載入的選項數少於limit，表示沒有更多選項了
             }
 
             options.forEach(option => {
@@ -489,7 +489,7 @@ function setupCustomSelect(inputId, dropdownId, fetchOptions) {
         const dropdownClientHeight = dropdown.clientHeight;
 
         // 如果滾動到底部，載入更多選項
-        if (dropdownScrollTop + dropdownClientHeight >= dropdownScrollHeight - 50) {
+        if (dropdownScrollTop + dropdownClientHeight >= dropdownScrollHeight - 250) {
             loadOptions();
         }
     }
