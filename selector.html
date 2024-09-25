@@ -361,14 +361,9 @@
             0% { opacity: 1; }
             100% { opacity: 0; }
         }
-.scale-container {
-    transform-origin: center; /* 縮放以左上角為基準 */
-}
 
-@media (max-width: 10000px), (max-height: 10000px) {
-    .scale-container {
-        transform: scale(calc(100%), calc(100%));
-    }
+
+
     </style>
 </head>
 <body >
@@ -787,20 +782,22 @@ window.onload = () => {
     });
 };
 
+
 function resize() {
     const width = window.innerWidth;
     const height = window.innerHeight;
     const aspectRatio = 16 / 9;
 
     if (width / height > aspectRatio) {
-        document.querySelector('.scale-container').style.transform = `scale(${height / 1080})`;
+        document.querySelector('.scale-container').style.transform = `scale(${height / 700})`;
     } else {
-        document.querySelector('.scale-container').style.transform = `scale(${width / 1920})`;
+        document.querySelector('.scale-container').style.transform = `scale(${width / 800})`;
     }
 }
 
 window.addEventListener('resize', resize);
 resize();  // 初始加載時調用一次
+
 
     </script>
 </body>
