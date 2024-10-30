@@ -1,8 +1,14 @@
 
+
 <!DOCTYPE html>
 <html lang="zh-tw" class="scale-container">
-<head>
 
+
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+	
+	
     <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-VFCKQ15FEE"></script>
 <script>
@@ -247,7 +253,7 @@
             top: 0;
             width: 100vw;
             height: 100vh;
-            background-color: #f0f0f075;
+            background-color: rgba(0,0,0,.4);
         }
 
         .modal-content {
@@ -403,7 +409,7 @@
         <div class="history-content" id="history">
             <h2>歷史記錄:</h2>
             <ul id="historyList"></ul>
-            <button onclick="clearHistory()">清除歷史記錄</button>
+            <button onclick="clearHistory1()">清除歷史記錄</button>
         </div>
     </div>
 
@@ -436,7 +442,7 @@
     </div>
 
 
-        <div class="footer-text">選號器v4 2024.08 byDinher</div>
+        <div class="footer-text">選號器v4.5 2024.10 byDinher</div>
 
 
     <script>
@@ -611,23 +617,52 @@ function generateNumbers() {
 
     // 檢查選擇人數是否有效
     if (isNaN(numPeople) || numPeople <= 0) {
-        showError('請輸入有效的選擇人數');
+		Swal.fire({
+			icon: 'error',
+			title: '請輸入有效的選擇人數',
+			text: '',
+			timer: 3000,
+			timerProgressBar: true,
+			confirmButtonText: '確認'
+		});
         return;
     }
 
     // 檢查其他條件
     if (isNaN(minRange) || isNaN(maxRange) || minRange >= maxRange) {
-        showError('請輸入有效的號碼範圍');
+			Swal.fire({
+			icon: 'error',
+			title: '請輸入有效的號碼範圍',
+			text: '',
+			timer: 3000,
+			timerProgressBar: true,
+			confirmButtonText: '確認'
+		});
         return;
     }
 
     if ((maxRange - minRange + 1) < numPeople) {
-        showError('號碼範圍不夠選擇人數，請更改選擇人數或號碼範圍');
+			Swal.fire({
+				icon: 'error',
+				title: '號碼範圍不夠選擇人數，請更改選擇人數或號碼範圍',
+				text: '',
+				timer: 3000,
+				timerProgressBar: true,
+				confirmButtonText: '確認'
+			});
         return;
     }
 
     if (!allowDuplicates && (selectedNumbers.size + numPeople > (maxRange - minRange + 1))) {
-        showError('所有號碼已選完，請清除歷史記錄');
+			Swal.fire({
+				icon: 'error',
+				title: '所有號碼已選完，請清除歷史記錄',
+				text: '',
+				timer: 3000,
+				timerProgressBar: true,
+				confirmButtonText: '確認'
+			});
+                
         return;
     }
 
@@ -664,10 +699,7 @@ function generateNumbers() {
                 }
                 updateHistory(historyList);
                 openResultModal(selected);
-                if (!allowDuplicates && selectedNumbers.size === (maxRange - minRange + 1)) {
-                    document.getElementById('generateButton').disabled = true;
-                    showError('所有號碼已選完，請清除歷史記錄');
-                }
+
             }
         }
     }, 75);
@@ -741,6 +773,23 @@ function openResultModal(selected) {
         });
     }
 
+    function clearHistory1() {
+        history = [];
+        selectedNumbers.clear();
+        document.getElementById('historyList').innerHTML = '';
+        setCookie("history", "", -1);
+        setCookie("selectedNumbers", "", -1);
+        document.getElementById('generateButton').disabled = false;
+			Swal.fire({
+				icon: 'success',
+				title: '已清除歷史記錄',
+				text: '',
+				timer: 3000,
+				timerProgressBar: true,
+				confirmButtonText: '確認'
+			});
+    }
+	
     function clearHistory() {
         history = [];
         selectedNumbers.clear();
@@ -748,7 +797,7 @@ function openResultModal(selected) {
         setCookie("history", "", -1);
         setCookie("selectedNumbers", "", -1);
         document.getElementById('generateButton').disabled = false;
-        clearErrorMessage(); // Clear error message when history is cleared
+
     }
 
 window.onload = () => {
