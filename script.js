@@ -450,4 +450,3 @@ document.getElementById('resultModal').addEventListener('click', function (event
     }
 });
 
-
