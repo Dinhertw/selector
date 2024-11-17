@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-tw" class="scale-container">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>選號器</title>
+    <!-- 連結外部 CSS -->
+    <link rel="stylesheet" href="style.css">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="sweetalert2.min.css">
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VFCKQ15FEE"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-VFCKQ15FEE');
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">
+            <h1>選號器</h1>
+            <label for="numPeople">選擇人數:</label>
+            <div class="custom-select">
+                <input type="number" id="numPeopleInput" placeholder="輸入或選擇">
+                <div class="select-items" id="numPeopleOptions"></div>
+            </div>
+
+            <label for="numRange">號碼範圍:</label>
+            <div class="input-container">
+                <div class="custom-select">
+                    <input type="number" id="minRangeInput" placeholder="最小值">
+                    <div class="select-items" id="minRangeOptions"></div>
+                </div>
+                <div class="custom-select">
+                    <input type="number" id="maxRangeInput" placeholder="最大值">
+                    <div class="select-items" id="maxRangeOptions"></div>
+                </div>
+            </div>
+
+            <button id="generateButton">生成號碼</button>
+            <div id="errorMessage" class="error-message"></div>
+            <label for="allowDuplicates">
+                <input type="checkbox" id="allowDuplicates"> 重複選號(不會記錄)
+            </label>
+
+            <div id="results">
+                <ul id="resultsList"></ul>
+            </div>
+        </div>
+
+        <div class="history-content" id="history">
+            <h2>歷史記錄:</h2>
+            <ul id="historyList"></ul>
+            <button onclick="clearHistory()">清除歷史記錄</button>
+        </div>
+    </div>
+
+    <div class="footer-text">選號器v4.5 2024.11 by Dinher</div>
+
+    <!-- SweetAlert2 JS -->
+    <script src="sweetalert2@11.js"></script>
+    <!-- 連結外部 JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
