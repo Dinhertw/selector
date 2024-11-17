@@ -38,9 +38,9 @@ const blueSwal = Swal.mixin({
 function setupCustomSelect(inputId, dropdownId, fetchOptions) {
     const input = document.getElementById(inputId);
     const dropdown = document.getElementById(dropdownId);
-
+	
     let start = 0;
-    const limit = 50; // 每次載入的選項數
+    const limit = 100;
     let loading = false;
     let hasMoreOptions = true;
 
@@ -50,25 +50,27 @@ function setupCustomSelect(inputId, dropdownId, fetchOptions) {
 
         fetchOptions(start, limit).then(options => {
             if (options.length < limit) {
-                hasMoreOptions = false; // 如果載入的選項數少於 limit，表示沒有更多選項了
+                hasMoreOptions = false;
             }
 
             options.forEach(option => {
                 const div = document.createElement("div");
                 div.textContent = option;
 
+                // 檢查是否是已選擇的數字
+                if (input.value == option) {
+                    div.classList.add("selected");
+                }
+
                 div.addEventListener("click", () => {
                     const prevValue = input.value;
-                    if (prevValue === option) {
-                        // 值未改變，不需要處理
-                        hideDropdown(dropdownId);
-                        return;
-                    }
-
                     input.value = option;
-                    hideDropdown(dropdownId);
 
-                    // 手動調用 handleRangeChange 函數
+                    // 更新選中項目樣式
+                    dropdown.querySelectorAll("div").forEach(item => item.classList.remove("selected"));
+                    div.classList.add("selected");
+
+                    hideDropdown();
                     handleRangeChange(input, prevValue);
                 });
 
@@ -78,7 +80,6 @@ function setupCustomSelect(inputId, dropdownId, fetchOptions) {
             start += limit;
             loading = false;
 
-            // 監聽滾動事件來載入更多
             dropdown.addEventListener('scroll', onScroll);
         });
     }
@@ -88,24 +89,57 @@ function setupCustomSelect(inputId, dropdownId, fetchOptions) {
         const dropdownScrollHeight = dropdown.scrollHeight;
         const dropdownClientHeight = dropdown.clientHeight;
 
-        // 如果滾動到底部，載入更多選項
-        if (dropdownScrollTop + dropdownClientHeight >= dropdownScrollHeight - 250) {
+        if (dropdownScrollTop + dropdownClientHeight >= dropdownScrollHeight /  1.25) {
             loadOptions();
         }
     }
 
-    input.addEventListener("focus", () => {
-        showDropdown(dropdownId);
-        loadOptions(); // 載入初始選項
-    });
+    function showDropdown() {
+        dropdown.classList.add('show');
+        loadOptions();
+        scrollToSelected(); // 顯示選單時自動滾動到選中項目
+    }
 
-    input.addEventListener("blur", () => {
-        setTimeout(() => hideDropdown(dropdownId), 250);
-    });
+    function hideDropdown() {
+        dropdown.classList.remove('show');
+    }
 
-    // 監聽滾動事件來載入更多
+    // 新增：滾動到使用者手動輸入的數字
+function scrollToSelected() {
+    const userInput = input.value.trim();
+    if (!userInput) return;
+
+    function findAndScroll() {
+        const selectedItem = Array.from(dropdown.children).find(item => item.textContent == userInput);
+
+        if (selectedItem) {
+            // 如果找到匹配項目，滾動到該項目
+            dropdown.querySelectorAll("div").forEach(item => item.classList.remove("selected"));
+            selectedItem.classList.add("selected");
+            dropdown.scrollTop = selectedItem.offsetTop - dropdown.clientHeight / 2;
+        } else if (hasMoreOptions) {
+			            // 如果找不到匹配項且還有更多選項，繼續加載
+            loadOptions();
+            setTimeout(findAndScroll); // 等待新選項加載後再次檢查
+        } else {
+            // 如果已經加載所有選項仍然找不到匹配項，可以執行額外邏輯
+            console.log("無法找到匹配的選項。");
+        }
+    }
+
+    findAndScroll();
+}
+
+
+
+    // 當使用者手動輸入時，檢查是否需要滾動選單
+    input.addEventListener("input", scrollToSelected);
+
+    input.addEventListener("focus", showDropdown);
+    input.addEventListener("blur", () => setTimeout(hideDropdown, 250));
     dropdown.addEventListener('scroll', onScroll);
 }
+
 
 
 // 類比一個從伺服器或其他源獲取選項的函數
@@ -115,9 +149,10 @@ function fetchOptions(start, limit) {
             // 生成類比資料
             const options = Array.from({ length: limit }, (_, i) => start + i + 1);
             resolve(options);
+			
         }); 
     });
-}
+} 
 
 // 初始化自訂選擇下拉式功能表
 setupCustomSelect("numPeopleInput", "numPeopleOptions", (start, limit) => fetchOptions(start, limit, 'numPeople'));
@@ -364,37 +399,22 @@ window.onload = () => {
     loadFromCookies();
     document.getElementById('generateButton').addEventListener('click', generateNumbers);
 
-    // 監聽"重複選號(不會記錄)"選項更改
-    document.getElementById('allowDuplicates').addEventListener('change', () => {
-        if (history.length > 0) {
-            blueSwal.fire({
-                title: '開啟重複選號功能，歷史記錄將被清除，確定要繼續嗎？',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: '確認',
-                cancelButtonText: '取消',
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    clearHistory(); // 清除歷史記錄
-                    clearErrorMessage(); // 清除錯誤訊息
-                } else {
-                    // 恢復選項狀態
-                    document.getElementById('allowDuplicates').checked = !document.getElementById('allowDuplicates').checked;
-                }
-            });
-        } else {
-            clearErrorMessage();
-        }
-    });
-
-    // 保存輸入框的前一個值
     let minPrevValue = document.getElementById('minRangeInput').value;
     let maxPrevValue = document.getElementById('maxRangeInput').value;
+    let numPeoplePrevValue = document.getElementById('numPeopleInput').value;
 
     const minRangeInput = document.getElementById('minRangeInput');
     const maxRangeInput = document.getElementById('maxRangeInput');
+    const numPeopleInput = document.getElementById('numPeopleInput');
 
-    // 監聽輸入框的 focus 事件，保存當前值
+    numPeopleInput.addEventListener('focus', () => {
+        numPeoplePrevValue = numPeopleInput.value;
+    });
+
+    numPeopleInput.addEventListener('change', () => {
+        handleRangeChange(numPeopleInput, numPeoplePrevValue);
+    });
+
     minRangeInput.addEventListener('focus', () => {
         minPrevValue = minRangeInput.value;
     });
@@ -403,7 +423,6 @@ window.onload = () => {
         maxPrevValue = maxRangeInput.value;
     });
 
-    // 監聽輸入框的 change 事件
     minRangeInput.addEventListener('change', () => {
         handleRangeChange(minRangeInput, minPrevValue);
     });
@@ -414,45 +433,63 @@ window.onload = () => {
 };
 
 
+
+    // 函數處理號碼範圍變動並顯示確認提示
 function handleRangeChange(inputElement, prevValue) {
+    // 檢查是否更改的是「選擇人數」輸入框
+    const isPeopleInput = (inputElement.id === 'numPeopleInput');
+
+    if (isPeopleInput) {
+        // 如果是「選擇人數」，不需要彈出提示，僅更新值
+        return;
+    }
+
     if (inputElement.value === prevValue) {
         // 值未改變，不需要處理
         return;
     }
 
     if (history.length > 0) {
-	blueSwal.fire({
-		title: '更改號碼範圍，歷史記錄將被清除，確定要繼續嗎？',
-		icon: 'warning',
-		showCancelButton: true,
-		confirmButtonText: '確認',
-		cancelButtonText: '取消',
-	}).then((result) => {
-		if (result.isConfirmed) {
-			clearHistory();
-			clearErrorMessage();
-			// 更新 prevValue
-			if (inputElement === minRangeInput) {
-				minPrevValue = inputElement.value;
-			} else {
-				maxPrevValue = inputElement.value;
-			}
-    } else {
-        // 恢復輸入框的值
-        inputElement.value = prevValue;
-    }
-});
-
+        Swal.fire({
+            title: '歷史記錄將被清除，確定要繼續嗎？',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: '確認',
+            cancelButtonText: '取消',
+            buttonsStyling: false,
+            customClass: {
+                confirmButton: 'swal2-confirm-button',
+                cancelButton: 'swal2-cancel-button',
+                actions: 'swal2-actions-horizontal',
+            },
+        }).then((result) => {
+            if (result.isConfirmed) {
+                clearHistory();
+                clearErrorMessage();
+                // 更新 prevValue
+                if (inputElement === minRangeInput) {
+                    minPrevValue = inputElement.value;
+                } else if (inputElement === maxRangeInput) {
+                    maxPrevValue = inputElement.value;
+                }
+            } else {
+                // 恢復輸入框的值
+                inputElement.value = prevValue;
+            }
+        });
     } else {
         // 更新 prevValue
         if (inputElement === minRangeInput) {
             minPrevValue = inputElement.value;
-        } else {
+        } else if (inputElement === maxRangeInput) {
             maxPrevValue = inputElement.value;
         }
         clearErrorMessage();
     }
 }
+
+
+
 
 
 

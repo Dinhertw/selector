@@ -62,67 +62,86 @@
             width: 330px;
         }
 
-        .custom-select {
-            position: relative;
-            display: inline-block;
-            width: 100px;
-        }
+/* 通用選單樣式 */
+.custom-select {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
 
-        .custom-select input {
-            border: 1px solid #ccc;
-            padding: 15px;
-            width: 200px;
-            box-sizing: border-box;
-            border-radius: 5px;
-            font-size: 17px;
-        }
+.custom-select input {
+    border: 1px solid #ccc;
+    padding: 12px;
+    border-radius: 5px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+    font-size: 16px;
+}
 
-        .select-items {
-            position: absolute;
-            background-color: #ffffff;
-            border: 1px solid #ccc;
-            border-top: none;
-            z-index: 1000;
-            height: 200px; /* 確保高度足夠顯示捲軸 */
-            width: 175px;
-            display: none; /* 默認隱藏下拉清單 */
-            border-radius: 5px;
-            box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.5);
-            padding: 5px;
-            box-sizing: border-box;
-            overflow: auto; /* 確保出現捲軸 */
-            font-size: 17px
-        }
+.custom-select input:focus {
+    border-color: #007bff; /* 聚焦時的藍色邊框 */
+    outline: none;
+}
 
-        .select-items::-webkit-scrollbar {
-            width: 10px; /* 捲軸寬度 */
-        }
+/* 下拉選單樣式 */
+.select-items {
+    position: absolute;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 輕微陰影效果 */
+    border-radius: 0 0 5px 5px;
+    width: 100%;
+    max-height: 0; /* 初始為 0 */
+    overflow-y: hidden; /* 隱藏內容 */
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    opacity: 0;
+    z-index: 1000;
+}
 
-        .select-items::-webkit-scrollbar-thumb {
-            background-color: #888; /* 捲軸滑塊顏色 */
-            border-radius: 10px; /* 捲軸滑塊圓角 */
-        }
-        
-        .select-items::-webkit-scrollbar-thumb:hover {
-            background-color: #555; /* 捲軸滑塊懸停顏色 */
-        }
+/* 顯示選單時的效果 */
+.select-items.show {
+    max-height: 200px; /* 展開後的高度 */
+    opacity: 1;
+    overflow-y: auto; /* 顯示捲動條 */
+}
 
-        .select-items::-webkit-scrollbar-track {
-            border-radius: 10px; /* 捲軸軌道圓角 */
-        }
+/* 下拉選單項目樣式 */
+.select-items div {
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.select-items div:hover {
+    background-color: #f0f0f0; /* 滑鼠懸停顏色 */
+}
+
+/* 已選擇項目的樣式 */
+.select-items div.selected {
+    background-color: #007bff;
+    color: #fff;
+}
+
+/* 自訂滾動條樣式 */
+.select-items::-webkit-scrollbar {
+    width: 8px;
+}
+
+.select-items::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 10px;
+}
+
+.select-items::-webkit-scrollbar-thumb:hover {
+    background-color: #555;
+}
+
+.select-items::-webkit-scrollbar-track {
+    background-color: #f0f0f0;
+}
 
 
-
-
-        .select-items div {
-            padding: 15px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        .select-items div:hover {
-            background-color: #f2f2f2;
-        }
 
         button {
             display: block;
