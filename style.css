@@ -87,7 +87,7 @@
 input:focus {
     border-color: #007bff; /* 聚焦時的藍色邊框 */
     outline: none;
-    border-radius: 0px 0px 5px 5px;
+    border-radius: 5px 5px 0px 0px;
 }
 
 /* 下拉選單樣式 */
