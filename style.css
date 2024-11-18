@@ -84,6 +84,12 @@
     outline: none;
 }
 
+input:focus {
+    border-color: #007bff; /* 聚焦時的藍色邊框 */
+    outline: none;
+    border-radius: 0px 0px 5px 5px;
+}
+
 /* 下拉選單樣式 */
 .select-items {
     position: absolute;
