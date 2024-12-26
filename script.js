@@ -280,8 +280,10 @@ function generateNumbers() {
     blueSwal.fire({
         title: '讓我們掌聲歡迎.....',
         html: '<div class="loading"></div>',
-        allowOutsideClick: false,
-        showConfirmButton: false,
+	showCancelButton: false,  // 不顯示取消按鈕
+	showConfirmButton: false, // 不顯示確定按鈕
+	allowOutsideClick: false, // 禁止點擊外部關閉
+	allowEscapeKey: false,    // 禁止按 ESC 關閉
         customClass: {
             popup: 'modal-content generating-modal-content',
             title: 'modal-header',
