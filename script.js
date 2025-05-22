@@ -388,6 +388,7 @@ function openResultModal(selected) {
         setCookie("selectedNumbers", "", -1);
         document.getElementById('generateButton').disabled = false;
 			blueSwal.fire({
+				position: "top-end",
 				timer: 1000,
 				timerProgressBar: true,
 				icon: "success",
